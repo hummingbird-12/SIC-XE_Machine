@@ -1,8 +1,4 @@
-#include "common.h"
 #include "main.h"
-#include "shell_cmd.c"
-#include "memory_cmd.c"
-#include "opcode_cmd.c"
 
 int main() {
 	while(1) {
@@ -18,34 +14,30 @@ int main() {
 			case opcode:
 				puts("Opcode Command");
 				break;
-			case invalid:
-				puts("Invalid Command");
 		}
 	}
 	return 0;
 }
 
-enum CMD_TYPE cmd_type() {
-	CMD_TYPE type;
+CMD_TYPE cmd_type() {
+	CMD_TYPE tp;
 	
 	switch(cmd[0]) {
 		case 'h':
 		case 'q':
 		case 'd':
-			type = shell;
+			tp = shell;
 			break;
 		case 'e':
 		case 'f':
 		case 'r':
-			type = memory;
+			tp = memory;
 			break;
 		case 'o':
-			type = opcode;
+			tp = opcode;
 			break;
-		default:
-			type = invalid;
 	}
-	if(type == shell && cmd[1] == 'u')
-		type = memory;
-	return type;
+	if(tp == shell && !strncmp(cmd, "du", 2))
+		tp = memory;
+	return tp;
 }
