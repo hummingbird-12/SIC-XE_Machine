@@ -19,13 +19,13 @@ typedef struct {
 	bool param;
 } COMMAND;
 
-COMMAND[] = {
+COMMAND cmdList[] = {
 	{ "help", "h", shell, help, false }, { "dir", "d", shell, dir, false },
 	{ "quit", "q", shell, quit, false }, { "history", "hi", shell, hist, false },
 	{ "dump", "du", memory, dump, true }, { "edit", "e", memory, edit, true },
-	{ "fill", "f", memory, fill, true }, { "reset", "\0", memory, reset, false },
-	{ "opcode", "\0", opcode, op, true }, { "opcodelist", "\0", opcode, oplist, false}
-}
+	{ "fill", "f", memory, fill, true }, { "reset", "reset", memory, reset, false },
+	{ "opcode", "opcode", opcode, op, true }, { "opcodelist", "opcodelist", opcode, oplist, false}
+};
 
 char cmd[MAX_LEN];
 
