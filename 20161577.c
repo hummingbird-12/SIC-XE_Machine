@@ -1,6 +1,10 @@
 #include "main.h"
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 typedef struct dirent ENTRY;
+typedef struct stat STBUF;
 
 COMMAND findCMD(char*);
 void helpCMD();
@@ -90,7 +94,9 @@ void helpCMD() {
 void dirCMD() {
 	DIR* dir = opendir(".");
 	char* e_str;
+	char path[258] = "./";
 	ENTRY* ent;
+	STBUF buf;
 
 	if(!dir) {
 		puts("ERROR opening directory...");
@@ -98,9 +104,13 @@ void dirCMD() {
 	}
 	ent = readdir(dir);
 	while(ent) {
+		path[2] = '\0';
 		e_str = ent->d_name;
-		printf("\t%s", e_str);
-		if(!strcmp(e_str + strlen(e_str) - 4, ".out"))
+		stat(strcat(path, e_str), &buf);
+		printf("\t%-s", e_str);
+		if(S_ISDIR(buf.st_mode))
+			printf("/");
+		else if(buf.st_mode & S_IXUSR) //if(!strcmp(e_str + strlen(e_str) - 4, ".out"))
 			printf("*");
 		ent = readdir(dir);
 	}
