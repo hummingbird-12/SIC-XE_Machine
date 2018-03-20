@@ -92,27 +92,29 @@ void helpCMD() {
 }
 
 void dirCMD() {
-	DIR* dir = opendir(".");
+	DIR* dir = opendir("."); // current directory
 	char* e_str;
-	char path[258] = "./";
-	ENTRY* ent;
-	STBUF buf;
+	char path[258] = "./"; // entry path string
+	ENTRY* ent; // entry
+	STBUF buf; // stat
 
 	if(!dir) {
 		puts("ERROR opening directory...");
 		return;
 	}
-	ent = readdir(dir);
+	ent = readdir(dir); // read entry
 	while(ent) {
-		path[2] = '\0';
-		e_str = ent->d_name;
+		path[2] = '\0'; // clear path string
+		e_str = ent->d_name; // entry name
 		stat(strcat(path, e_str), &buf);
-		printf("\t%-s", e_str);
-		if(S_ISDIR(buf.st_mode))
+		printf("\t%-s", e_str); // print entry name
+
+		if(S_ISDIR(buf.st_mode)) // check for directory
 			printf("/");
-		else if(buf.st_mode & S_IXUSR) //if(!strcmp(e_str + strlen(e_str) - 4, ".out"))
+		else if(buf.st_mode & S_IXUSR) // check for exec file
 			printf("*");
-		ent = readdir(dir);
+
+		ent = readdir(dir); // read next entry
 	}
 	closedir(dir);
 	puts("");
