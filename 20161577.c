@@ -1,10 +1,4 @@
 #include "main.h"
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-typedef struct dirent ENTRY;
-typedef struct stat STBUF;
 
 COMMAND findCMD(char*);
 void helpCMD();
@@ -22,7 +16,7 @@ int main() {
 	COMMAND cmdExec;
 	while(1) {
 		printf("sicsim> ");
-		fgets(cmd, MAX_LEN, stdin);
+		fgets(cmd, CMD_LEN, stdin);
 		cmd[strlen(cmd) - 1] = '\0';
 		cmdExec = findCMD(cmd);
 
@@ -61,29 +55,6 @@ COMMAND findCMD(char* str) {
 
 bool isValidCMD(char* str, COMMAND CMDformat) {
 //	if(CMD)
-}
-
-CMD_TYPE cmd_type() {
-	CMD_TYPE tp;
-
-	switch(cmd[0]) {
-		case 'h':
-		case 'q':
-		case 'd':
-			tp = shell;
-			break;
-		case 'e':
-		case 'f':
-		case 'r':
-			tp = memory;
-			break;
-		case 'o':
-			tp = opcode;
-			break;
-	}
-	if(tp == shell && !strncmp(cmd, "du", 2))
-		tp = memory;
-	return tp;
 }
 
 void helpCMD() {
@@ -126,4 +97,8 @@ void dirCMD() {
 	}
 	closedir(dir);
 	puts("");
+}
+
+void quitCMD() {
+
 }
