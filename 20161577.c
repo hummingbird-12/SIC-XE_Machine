@@ -19,9 +19,7 @@ int main() {
 				dirCMD();
 				break;
 			case quit:
-				puts("Exiting SIC...");
-				hist_free();
-				exit(0);
+				quitCMD();
 				break;
 			case hist:
 				histCMD();
@@ -102,6 +100,9 @@ void dirCMD() {
 }
 
 void quitCMD() {
+	puts("Exiting SIC...");
+	hist_free();
+	exit(0);
 
 }
 
