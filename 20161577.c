@@ -1,4 +1,4 @@
-#include "main.h"
+#include "common.h"
 
 COMMAND findCMD(char*);
 void helpCMD();
