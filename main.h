@@ -44,7 +44,6 @@ COMMAND cmdList[CMD_CNT] = {
 
 };
 
-char cmd[CMD_LEN];
 HIST_NODE* hist_head = NULL;
 
 COMMAND findCMD(char*);

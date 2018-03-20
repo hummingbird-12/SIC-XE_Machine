@@ -1,12 +1,15 @@
 #include "main.h"
 
 int main() {
+	char inp[CMD_LEN];
 	COMMAND cmdExec;
 	while(1) {
 		printf("sicsim> ");
-		fgets(cmd, CMD_LEN, stdin);
-		cmd[strlen(cmd) - 1] = '\0';
-		cmdExec = findCMD(cmd);
+		fgets(inp, CMD_LEN, stdin);
+		inp[strlen(inp) - 1] = '\0';
+		cmdExec = findCMD(inp);
+		if(cmdExec.func != inv)
+			hist_add(inp);
 
 		switch(cmdExec.func) {
 			case help:
@@ -16,8 +19,12 @@ int main() {
 				dirCMD();
 				break;
 			case quit:
+				puts("Exiting SIC...");
+				hist_free();
+				exit(0);
 				break;
 			case hist:
+				histCMD();
 				break;
 			case dump:
 				break;
@@ -98,6 +105,16 @@ void quitCMD() {
 
 }
 
+void histCMD() {
+	HIST_NODE* cur = hist_head;
+	int cnt = 1;
+
+	while(cur) {
+		printf("\t%-3d  %s\n", cnt++, cur->str);
+		cur = cur->next;
+	}
+}
+
 void hist_add(char* str) {
 	HIST_NODE* cur = hist_head;
 	HIST_NODE* new_hist = malloc(sizeof(HIST_NODE));
@@ -121,4 +138,5 @@ void hist_free() {
 		free(cur);
 		cur = nex;
 	}
+	hist_head = NULL;
 }
