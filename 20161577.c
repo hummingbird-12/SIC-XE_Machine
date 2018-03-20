@@ -27,6 +27,24 @@ int main() {
 			case dir:
 				dirCMD();
 				break;
+			case quit:
+				break;
+			case hist:
+				break;
+			case dump:
+				break;
+			case edit:
+				break;
+			case fill:
+				break;
+			case reset:
+				break;
+			case op:
+				break;
+			case oplist:
+				break;
+			case inv:
+				break;
 		}
 	}
 	return 0;
