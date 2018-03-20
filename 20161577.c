@@ -28,19 +28,6 @@ int main() {
 				dirCMD();
 				break;
 		}
-		/*
-		   switch(cmd_type()) {
-		   case shell:
-		   puts("Shell Command");
-		   break;
-		   case memory:
-		   puts("Memory Command");
-		   break;
-		   case opcode:
-		   puts("Opcode Command");
-		   break;
-		   }
-		   */
 	}
 	return 0;
 }
@@ -54,7 +41,7 @@ COMMAND findCMD(char* str) {
 }
 
 bool isValidCMD(char* str, COMMAND CMDformat) {
-//	if(CMD)
+	//	if(CMD)
 }
 
 void helpCMD() {
