@@ -8,6 +8,7 @@
 
 #define CMD_LEN 12
 #define CMD_CNT 11
+#define PAR_MAX 3
 
 typedef struct dirent ENTRY;
 typedef struct stat STBUF;
@@ -28,6 +29,12 @@ typedef struct {
 	CMD_FUNC func;
 	bool param;
 } COMMAND;
+
+typedef struct {
+	CMD_FUNC cmd;
+	short par_cnt;
+	char par[PAR_MAX];
+} INPUT;
 
 typedef struct hist_struct {
 	char str[CMD_LEN];
