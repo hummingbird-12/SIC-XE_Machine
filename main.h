@@ -46,6 +46,8 @@ COMMAND cmdList[CMD_CNT] = {
 
 HIST_NODE* hist_head = NULL;
 
+char mem[65536][32];
+
 COMMAND findCMD(char*);
 
 void helpCMD();
