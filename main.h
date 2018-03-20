@@ -34,7 +34,7 @@ typedef struct {
 	CMD_FUNC cmd;
 	short par_cnt;
 	char par[PAR_MAX];
-} INPUT;
+} USR_CMD;
 
 typedef struct hist_struct {
 	char str[CMD_LEN];
