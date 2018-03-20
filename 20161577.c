@@ -9,6 +9,14 @@ typedef struct stat STBUF;
 COMMAND findCMD(char*);
 void helpCMD();
 void dirCMD();
+void quitCMD();
+void histCMD();
+void dumpCMD();
+void editCMD();
+void fillCMD();
+void resetCMD();
+void opCMD();
+void oplistCMD();
 
 int main() {
 	COMMAND cmdExec;
