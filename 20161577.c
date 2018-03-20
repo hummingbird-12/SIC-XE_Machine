@@ -1,7 +1,10 @@
 #include "main.h"
+#include <dirent.h>
+typedef struct dirent ENTRY;
 
 COMMAND findCMD(char*);
 void helpCMD();
+void dirCMD();
 
 int main() {
 	COMMAND cmdExec;
@@ -11,9 +14,12 @@ int main() {
 		cmd[strlen(cmd) - 1] = '\0';
 		cmdExec = findCMD(cmd);
 
-		switch(cmdExec.exec) {
+		switch(cmdExec.func) {
 			case help:
 				helpCMD();
+				break;
+			case dir:
+				dirCMD();
 				break;
 		}
 		/*
@@ -39,6 +45,10 @@ COMMAND findCMD(char* str) {
 		if(!strcmp(str, cmdList[i].str) || !strcmp(str, cmdList[i].abb))
 			return cmdList[i];
 	return cmdList[CMD_CNT - 1];
+}
+
+bool isValidCMD(char* str, COMMAND CMDformat) {
+//	if(CMD)
 }
 
 CMD_TYPE cmd_type() {
@@ -75,4 +85,25 @@ void helpCMD() {
 			"reset\n"
 			"opcode mnemonic\n"
 			"opcodelist\n");
+}
+
+void dirCMD() {
+	DIR* dir = opendir(".");
+	char* e_str;
+	ENTRY* ent;
+
+	if(!dir) {
+		puts("ERROR opening directory...");
+		return;
+	}
+	ent = readdir(dir);
+	while(ent) {
+		e_str = ent->d_name;
+		printf("\t%s", e_str);
+		if(!strcmp(e_str + strlen(e_str) - 4, ".out"))
+			printf("*");
+		ent = readdir(dir);
+	}
+	closedir(dir);
+	puts("");
 }
