@@ -12,12 +12,15 @@
 typedef struct dirent ENTRY;
 typedef struct stat STBUF;
 typedef enum { false, true } bool;
+
 typedef enum {
 	shell, memory, opcode, invalid
 } CMD_TYPE;
+
 typedef enum {
 	help, dir, quit, hist, dump, edit, fill, reset, op, oplist, inv
 } CMD_FUNC;
+
 typedef struct {
 	char str[CMD_LEN];
 	char abb[CMD_LEN];
@@ -37,3 +40,15 @@ COMMAND cmdList[CMD_CNT] = {
 };
 
 char cmd[CMD_LEN];
+
+COMMAND findCMD(char*);
+void helpCMD();
+void dirCMD();
+void quitCMD();
+void histCMD();
+void dumpCMD();
+void editCMD();
+void fillCMD();
+void resetCMD();
+void opCMD();
+void oplistCMD();

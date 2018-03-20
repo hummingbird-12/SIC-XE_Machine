@@ -1,17 +1,5 @@
 #include "main.h"
 
-COMMAND findCMD(char*);
-void helpCMD();
-void dirCMD();
-void quitCMD();
-void histCMD();
-void dumpCMD();
-void editCMD();
-void fillCMD();
-void resetCMD();
-void opCMD();
-void oplistCMD();
-
 int main() {
 	COMMAND cmdExec;
 	while(1) {
@@ -58,9 +46,11 @@ COMMAND findCMD(char* str) {
 	return cmdList[CMD_CNT - 1];
 }
 
+/*
 bool isValidCMD(char* str, COMMAND CMDformat) {
 	//	if(CMD)
 }
+*/
 
 void helpCMD() {
 	printf("h[elp]\n"
