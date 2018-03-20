@@ -47,8 +47,8 @@ COMMAND findCMD(char* str) {
 }
 
 /*
-bool isValidCMD(char* str, COMMAND CMDformat) {
-	//	if(CMD)
+   bool isValidCMD(char* str, COMMAND CMDformat) {
+//	if(CMD)
 }
 */
 
@@ -96,4 +96,29 @@ void dirCMD() {
 
 void quitCMD() {
 
+}
+
+void hist_add(char* str) {
+	HIST_NODE* cur = hist_head;
+	HIST_NODE* new_hist = malloc(sizeof(HIST_NODE));
+	strcpy(new_hist->str, str);
+	new_hist->next = NULL;
+
+	if(!hist_head) {
+		hist_head = new_hist;
+		return;
+	}
+	while(cur->next)
+		cur = cur->next;
+	cur->next = new_hist;
+}
+
+void hist_free() {
+	HIST_NODE* cur = hist_head;
+	HIST_NODE* nex;
+	while(cur) {
+		nex = cur->next;
+		free(cur);
+		cur = nex;
+	}
 }

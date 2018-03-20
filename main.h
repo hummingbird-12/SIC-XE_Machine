@@ -29,6 +29,11 @@ typedef struct {
 	bool param;
 } COMMAND;
 
+typedef struct hist_struct {
+	char str[CMD_LEN];
+	struct hist_struct* next;
+} HIST_NODE;
+
 COMMAND cmdList[CMD_CNT] = {
 	{ "help", "h", shell, help, false  }, { "dir", "d", shell, dir, false  },
 	{ "quit", "q", shell, quit, false  }, { "history", "hi", shell, hist, false  },
@@ -40,8 +45,10 @@ COMMAND cmdList[CMD_CNT] = {
 };
 
 char cmd[CMD_LEN];
+HIST_NODE* hist_head = NULL;
 
 COMMAND findCMD(char*);
+
 void helpCMD();
 void dirCMD();
 void quitCMD();
@@ -52,3 +59,6 @@ void fillCMD();
 void resetCMD();
 void opCMD();
 void oplistCMD();
+
+void hist_add(char*);
+void hist_free();
