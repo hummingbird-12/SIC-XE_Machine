@@ -75,7 +75,7 @@ USR_CMD findCMD(char* str) {
 		while((tok = strtok(NULL, delim)))
 			strcpy((u_cmd.param)[j++], tok);
 		u_cmd.param_cnt = j;
-		if(j > 2)
+		if(j > 3)
 			u_cmd.cmd = inv;
 	}
 	else if((tok = strtok(NULL, delim))) // not expected parameter
