@@ -9,6 +9,8 @@
 #define CMD_LEN 101
 #define CMD_CNT 11
 #define PAR_MAX 3
+#define MEM_VLEN 65536
+#define MEM_HLEN 32
 
 typedef struct dirent ENTRY;
 typedef struct stat STBUF;
@@ -53,7 +55,7 @@ COMMAND cmdList[CMD_CNT] = {
 
 HIST_NODE* hist_head = NULL;
 
-char mem[65536][32];
+char mem[MEM_VLEN][MEM_HLEN];
 
 USR_CMD findCMD(char*);
 

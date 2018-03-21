@@ -3,6 +3,9 @@
 int main() {
 	char inp[CMD_LEN];
 	USR_CMD cmdExec;
+
+	resetCMD();
+
 	while(1) {
 		printf("sicsim> ");
 		fgets(inp, CMD_LEN, stdin);
@@ -153,7 +156,10 @@ void fillCMD() {
 }
 
 void resetCMD() {
-
+	int i, j;
+	for(i = 0; i < MEM_VLEN; i++)
+		for(j = 0; j < MEM_HLEN; j++)
+			mem[i][j] = '0';
 }
 
 void opCMD() {
