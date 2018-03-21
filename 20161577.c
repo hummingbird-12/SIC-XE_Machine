@@ -48,11 +48,14 @@ int main() {
 	return 0;
 }
 
-USR_CMD findCMD(char* inp) {
+USR_CMD findCMD(char* str) {
 	int i, j;
-	char delim[] = " ,\t";
+	char delim[] = " ,\t\n";
+	char inp[CMD_LEN];
 	char* tok;
 	USR_CMD u_cmd;
+
+	strcpy(inp, str);
 
 	u_cmd.cmd = inv; // initialize as invalid
 	u_cmd.param_cnt = 0;
@@ -72,18 +75,14 @@ USR_CMD findCMD(char* inp) {
 		while((tok = strtok(NULL, delim)))
 			strcpy((u_cmd.param)[j++], tok);
 		u_cmd.param_cnt = j;
+		if(j > 2)
+			u_cmd.cmd = inv;
 	}
 	else if((tok = strtok(NULL, delim))) // not expected parameter
 		u_cmd.cmd = inv; // set as invalid
 
 	return u_cmd;
 }
-
-/*
-   bool isValidCMD(char* str, COMMAND CMDformat) {
-//	if(CMD)
-}
-*/
 
 void helpCMD() {
 	printf("h[elp]\n"
@@ -139,7 +138,8 @@ void histCMD() {
 	int cnt = 1;
 
 	while(cur) {
-		printf("\t%-3d  %s\n", cnt++, cur->str);
+		printf("\t%-3d  ", cnt++);
+		puts(cur->str);
 		cur = cur->next;
 	}
 }
