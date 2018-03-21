@@ -34,6 +34,7 @@ int main() {
 			case fill:
 				break;
 			case reset:
+				resetCMD();
 				break;
 			case op:
 				break;
