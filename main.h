@@ -76,5 +76,6 @@ void invCMD();
 void hist_add(char*);
 void hist_free();
 
+char* decToHex(int);
 int hexToDec(char*);
 bool testValidAdr(char*, char*);

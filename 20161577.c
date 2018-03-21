@@ -145,30 +145,62 @@ void histCMD() {
 }
 
 void dumpCMD(USR_CMD uscmd) {
-	int i, st = 0, ed = st + 160;
+	static int st = 0;
+	int i, j, ed;
+	char* hex;
+	char tmp[3] = {'\0'};
+	ed = st + 160;
 	if(uscmd.param_cnt > 2) {
 		invCMD();
 		return;
 	}
 	if(uscmd.param_cnt) {
 		st = hexToDec(uscmd.param[0]);
-		if(uscmd.param_cnt == 1)
-			strcpy(uscmd.param[1], "10001");
+		if(uscmd.param_cnt == 1) {
+			ed = st + 160;
+			strcpy(uscmd.param[1], "100001");
+		}
 		else
-			ed = hexToDec(uscmd.param[1]);
+			ed = hexToDec(uscmd.param[1]) + 1;
 		if(!testValidAdr(uscmd.param[0], uscmd.param[1])) {
 			invCMD();
 			return;
 		}
 	}
-	if(ed > MEM_SIZE)
+	if(ed >= MEM_SIZE)
 		ed = MEM_SIZE;
 
+	mem[0] = '3';
+	mem[1] = '1';
+	mem[2] = '3';
+	mem[3] = '2';
+	mem[4] = '3';
+	mem[5] = '3';
+	hex = decToHex(st / 16 * 16);
+	printf("%s ", hex);
+	free(hex);
 	for(i = st / 16 * 16; i < st; i++)
 		printf("   ");
-	for(i = st; i < ed; i++)
+	for(i = st; i < ed; i++) {
 		printf("%c%c ", mem[2 * i], mem[2 * i + 1]);
-	puts("");
+		if(!((i + 1) % 16) && (i + 1) <= ed) {
+			printf("; ");
+			for(j = 0; j < 10; j++) {
+				strncpy(tmp, mem + i - 15 + j * 2, 2);
+				if(hexToDec(tmp) >= hexToDec("20\0") && hexToDec(tmp) <= hexToDec("7E\0"))
+					printf("%c", hexToDec(tmp));
+				else
+					printf(".");
+			}
+			puts("");
+			if(i + 1 != ed) {
+				hex = decToHex(i + 1);
+				printf("%s ", hex);
+				free(hex);
+			}
+		}
+	}
+	st = i;
 }
 
 void editCMD(USR_CMD uscmd) {
@@ -182,7 +214,7 @@ void fillCMD(USR_CMD uscmd) {
 void resetCMD() {
 	int i;
 	for(i = 0; i < MEM_VLEN * MEM_HLEN; i++)
-			mem[i] = '0';
+		mem[i] = '0';
 }
 
 void opCMD(USR_CMD uscmd) {
@@ -222,6 +254,17 @@ void hist_free() {
 		cur = nex;
 	}
 	hist_head = NULL;
+}
+
+char* decToHex(int dec) {
+	char* hex = malloc(sizeof(char) * 6);
+	int i = 4;
+	strcpy(hex, "00000\0");
+	while(dec) {
+		hex[i--] = (dec % 16 < 10) ? dec % 16 + '0' : dec % 16 - 10 + 'A';
+		dec /= 16;
+	}
+	return hex;
 }
 
 int hexToDec(char* hex) {
