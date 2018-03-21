@@ -144,15 +144,15 @@ void histCMD() {
 	}
 }
 
-void dumpCMD() {
+void dumpCMD(USR_CMD cmd) {
 
 }
 
-void editCMD() {
+void editCMD(USR_CMD cmd) {
 
 }
 
-void fillCMD() {
+void fillCMD(USR_CMD cmd) {
 
 }
 
@@ -163,7 +163,7 @@ void resetCMD() {
 			mem[i][j] = '0';
 }
 
-void opCMD() {
+void opCMD(USR_CMD cmd) {
 
 }
 

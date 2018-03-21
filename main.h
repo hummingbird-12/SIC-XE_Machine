@@ -63,11 +63,11 @@ void helpCMD();
 void dirCMD();
 void quitCMD();
 void histCMD();
-void dumpCMD();
-void editCMD();
-void fillCMD();
+void dumpCMD(USR_CMD);
+void editCMD(USR_CMD);
+void fillCMD(USR_CMD);
 void resetCMD();
-void opCMD();
+void opCMD(USR_CMD);
 void oplistCMD();
 void invCMD();
 
