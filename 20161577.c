@@ -31,8 +31,10 @@ int main() {
 				dumpCMD(cmdExec);
 				break;
 			case edit:
+				editCMD(cmdExec);
 				break;
 			case fill:
+				fillCMD(cmdExec);
 				break;
 			case reset:
 				resetCMD();
@@ -170,12 +172,6 @@ void dumpCMD(USR_CMD uscmd) {
 	if(ed >= MEM_SIZE)
 		ed = MEM_SIZE;
 
-	mem[0] = '3';
-	mem[1] = '1';
-	mem[2] = '3';
-	mem[3] = '2';
-	mem[4] = '3';
-	mem[5] = '3';
 	hex = decToHex(st / 16 * 16);
 	printf("%s ", hex);
 	free(hex);
@@ -186,8 +182,8 @@ void dumpCMD(USR_CMD uscmd) {
 		if(!((i + 1) % 16) && (i + 1) <= ed) {
 			printf("; ");
 			for(j = 0; j < 10; j++) {
-				strncpy(tmp, mem + i - 15 + j * 2, 2);
-				if(hexToDec(tmp) >= hexToDec("20\0") && hexToDec(tmp) <= hexToDec("7E\0"))
+				strncpy(tmp, mem + (i - 15 + j) * 2, 2);
+				if(hexToDec(tmp) >= 32 && hexToDec(tmp) <= 126)
 					printf("%c", hexToDec(tmp));
 				else
 					printf(".");
@@ -200,15 +196,62 @@ void dumpCMD(USR_CMD uscmd) {
 			}
 		}
 	}
+	if(i % 16) {
+		while(i++ % 16)
+			printf("   ");
+		printf("; ");
+		for(j = 0; j < 10; j++) {
+			strncpy(tmp, mem + (i - 17 + j) * 2, 2);
+			if(hexToDec(tmp) >= 32 && hexToDec(tmp) <= 126)
+				printf("%c", hexToDec(tmp));
+			else
+				printf(".");
+		}
+
+		puts("");
+	}
 	st = i;
 }
 
 void editCMD(USR_CMD uscmd) {
-
+	int i, add = hexToDec(uscmd.param[0]);
+	if(uscmd.param_cnt != 2) {
+		invCMD();
+		return;
+	}
+	for(i = 0; i < 2; i++)
+		if(isalpha(uscmd.param[1][i]))
+			uscmd.param[1][i] = toupper(uscmd.param[1][i]);
+	strncpy(mem + add * 2, uscmd.param[1], 2);
 }
 
 void fillCMD(USR_CMD uscmd) {
+	int st, ed, i;
+	char* hex;
+	USR_CMD tmp;
+	tmp.param_cnt = 2;
 
+	if(uscmd.param_cnt != 3) {
+		invCMD();
+		return;
+	}
+	if(!testValidAdr(uscmd.param[0], uscmd.param[1])) {
+		invCMD();
+		return;
+	}
+	if(!isValidHex(uscmd.param[2]) || strlen(uscmd.param[2]) > 2) {
+		invCMD();
+		return;
+	}
+	st = hexToDec(uscmd.param[0]);
+	ed = hexToDec(uscmd.param[1]) + 1;
+	for(i = 0; i < ed - st; i++) {
+		hex = decToHex(st + i);
+		strcpy(tmp.param[0], hex);
+		strcpy(tmp.param[1], uscmd.param[2]);
+		editCMD(tmp);
+		free(hex);
+	}
 }
 
 void resetCMD() {
@@ -276,6 +319,14 @@ int hexToDec(char* hex) {
 		multiplier *= 16;
 	}
 	return dec;
+}
+
+bool isValidHex(char* str) {
+	int i;
+	for(i = 0; str[i]; i++)
+		if(!isxdigit(str[i]))
+			return false;
+	return true;
 }
 
 bool testValidAdr(char* start, char* end) {

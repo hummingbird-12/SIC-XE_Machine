@@ -78,4 +78,5 @@ void hist_free();
 
 char* decToHex(int);
 int hexToDec(char*);
+bool isValidHex(char*);
 bool testValidAdr(char*, char*);
