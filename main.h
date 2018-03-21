@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define CMD_LEN 12
+#define CMD_LEN 101
 #define CMD_CNT 11
 #define PAR_MAX 3
 
@@ -32,8 +32,8 @@ typedef struct {
 
 typedef struct {
 	CMD_FUNC cmd;
-	short par_cnt;
-	char par[PAR_MAX];
+	short param_cnt;
+	char param[PAR_MAX][10];
 } USR_CMD;
 
 typedef struct hist_struct {
@@ -55,7 +55,7 @@ HIST_NODE* hist_head = NULL;
 
 char mem[65536][32];
 
-COMMAND findCMD(char*);
+USR_CMD findCMD(char*);
 
 void helpCMD();
 void dirCMD();
@@ -67,6 +67,7 @@ void fillCMD();
 void resetCMD();
 void opCMD();
 void oplistCMD();
+void invCMD();
 
 void hist_add(char*);
 void hist_free();

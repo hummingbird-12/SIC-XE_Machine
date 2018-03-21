@@ -2,16 +2,16 @@
 
 int main() {
 	char inp[CMD_LEN];
-	COMMAND cmdExec;
+	USR_CMD cmdExec;
 	while(1) {
 		printf("sicsim> ");
 		fgets(inp, CMD_LEN, stdin);
 		inp[strlen(inp) - 1] = '\0';
 		cmdExec = findCMD(inp);
-		if(cmdExec.func != inv)
+		if(cmdExec.cmd != inv)
 			hist_add(inp);
 
-		switch(cmdExec.func) {
+		switch(cmdExec.cmd) {
 			case help:
 				helpCMD();
 				break;
@@ -37,18 +37,42 @@ int main() {
 			case oplist:
 				break;
 			case inv:
+				invCMD();
 				break;
 		}
 	}
 	return 0;
 }
 
-COMMAND findCMD(char* str) {
-	int i;
+USR_CMD findCMD(char* inp) {
+	int i, j;
+	char delim[] = " ,\t";
+	char* tok;
+	USR_CMD u_cmd;
+
+	u_cmd.cmd = inv; // initialize as invalid
+	u_cmd.param_cnt = 0;
+
+	tok = strtok(inp, delim); // first word of input
 	for(i = 0; i < CMD_CNT - 1; i++)
-		if(!strcmp(str, cmdList[i].str) || !strcmp(str, cmdList[i].abb))
-			return cmdList[i];
-	return cmdList[CMD_CNT - 1];
+		if(!strcmp(tok, cmdList[i].str) || !strcmp(tok, cmdList[i].abb)) {
+			u_cmd.cmd = cmdList[i].func;
+			break;
+		}
+
+	if(u_cmd.cmd == inv) // invalid command
+		return u_cmd;
+
+	if(cmdList[i].param) { // get parameters
+		j = 0;
+		while((tok = strtok(NULL, delim)))
+			strcpy((u_cmd.param)[j++], tok);
+		u_cmd.param_cnt = j;
+	}
+	else if((tok = strtok(NULL, delim))) // not expected parameter
+		u_cmd.cmd = inv; // set as invalid
+
+	return u_cmd;
 }
 
 /*
@@ -114,6 +138,11 @@ void histCMD() {
 		printf("\t%-3d  %s\n", cnt++, cur->str);
 		cur = cur->next;
 	}
+}
+
+void invCMD() {
+	puts("ERROR: Invalid command.");
+	puts("Type \"help\" for list and formats of commands.");
 }
 
 void hist_add(char* str) {
