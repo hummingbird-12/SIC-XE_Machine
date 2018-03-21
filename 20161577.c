@@ -28,6 +28,7 @@ int main() {
 				histCMD();
 				break;
 			case dump:
+				dumpCMD(cmdExec);
 				break;
 			case edit:
 				break;
@@ -145,7 +146,11 @@ void histCMD() {
 }
 
 void dumpCMD(USR_CMD uscmd) {
-
+	if(uscmd.param_cnt > 2) {
+		invCMD();
+		return;
+	}
+	printf("%d\n", hexToDec((uscmd.param)[0]));
 }
 
 void editCMD(USR_CMD uscmd) {
@@ -200,4 +205,20 @@ void hist_free() {
 		cur = nex;
 	}
 	hist_head = NULL;
+}
+
+int hexToDec(char* hex) {
+	int i, dec = 0, multiplier = 1;
+	for(i = strlen(hex) - 1; i >= 0; i--) {
+		if(!isalnum(hex[i]))
+			return -1;
+		dec += multiplier * (isdigit(hex[i]) ? (hex[i] - '0') : (toupper(hex[i]) - 'A' + 10));
+		multiplier *= 16;
+	}
+	return dec;
+}
+
+bool testValidAdr(char* adr) {
+	int i;
+	int dec = 0, cnt = strlen(adr);
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
 #include <dirent.h>
@@ -73,3 +74,6 @@ void invCMD();
 
 void hist_add(char*);
 void hist_free();
+
+int hexToDec(char*);
+bool testValidAdr(char*);
