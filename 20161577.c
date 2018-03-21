@@ -74,7 +74,7 @@ USR_CMD findCMD(char* str) {
 	if(cmdList[i].param) { // get parameters
 		j = 0;
 		while((tok = strtok(NULL, delim)))
-			strcpy((u_cmd.param)[j++], tok);
+			strcpy(u_cmd.param[j++], tok);
 		u_cmd.param_cnt = j;
 		if(j > 3)
 			u_cmd.cmd = inv;
@@ -131,7 +131,6 @@ void quitCMD() {
 	puts("Exiting SIC...");
 	hist_free();
 	exit(0);
-
 }
 
 void histCMD() {
@@ -146,11 +145,30 @@ void histCMD() {
 }
 
 void dumpCMD(USR_CMD uscmd) {
+	int i, st = 0, ed = st + 160;
 	if(uscmd.param_cnt > 2) {
 		invCMD();
 		return;
 	}
-	printf("%d\n", hexToDec((uscmd.param)[0]));
+	if(uscmd.param_cnt) {
+		st = hexToDec(uscmd.param[0]);
+		if(uscmd.param_cnt == 1)
+			strcpy(uscmd.param[1], "10001");
+		else
+			ed = hexToDec(uscmd.param[1]);
+		if(!testValidAdr(uscmd.param[0], uscmd.param[1])) {
+			invCMD();
+			return;
+		}
+	}
+	if(ed > MEM_SIZE)
+		ed = MEM_SIZE;
+
+	for(i = st / 16 * 16; i < st; i++)
+		printf("   ");
+	for(i = st; i < ed; i++)
+		printf("%c%c ", mem[2 * i], mem[2 * i + 1]);
+	puts("");
 }
 
 void editCMD(USR_CMD uscmd) {
@@ -162,10 +180,9 @@ void fillCMD(USR_CMD uscmd) {
 }
 
 void resetCMD() {
-	int i, j;
-	for(i = 0; i < MEM_VLEN; i++)
-		for(j = 0; j < MEM_HLEN; j++)
-			mem[i][j] = '0';
+	int i;
+	for(i = 0; i < MEM_VLEN * MEM_HLEN; i++)
+			mem[i] = '0';
 }
 
 void opCMD(USR_CMD uscmd) {
@@ -218,7 +235,9 @@ int hexToDec(char* hex) {
 	return dec;
 }
 
-bool testValidAdr(char* adr) {
-	int i;
-	int dec = 0, cnt = strlen(adr);
+bool testValidAdr(char* start, char* end) {
+	int st = hexToDec(start), ed = hexToDec(end);
+	if(st + ed < 0 || st > ed || st > MEM_VLEN * MEM_HLEN)
+		return false;
+	return true;
 }

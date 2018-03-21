@@ -10,6 +10,7 @@
 #define CMD_LEN 101
 #define CMD_CNT 11
 #define PAR_MAX 3
+#define MEM_SIZE 1048576
 #define MEM_VLEN 65536
 #define MEM_HLEN 32
 
@@ -56,7 +57,7 @@ COMMAND cmdList[CMD_CNT] = {
 
 HIST_NODE* hist_head = NULL;
 
-char mem[MEM_VLEN][MEM_HLEN];
+char mem[MEM_VLEN * MEM_HLEN];
 
 USR_CMD findCMD(char*);
 
@@ -76,4 +77,4 @@ void hist_add(char*);
 void hist_free();
 
 int hexToDec(char*);
-bool testValidAdr(char*);
+bool testValidAdr(char*, char*);
