@@ -140,6 +140,30 @@ void histCMD() {
 	}
 }
 
+void dumpCMD() {
+
+}
+
+void editCMD() {
+
+}
+
+void fillCMD() {
+
+}
+
+void resetCMD() {
+
+}
+
+void opCMD() {
+
+}
+
+void oplistCMD() {
+
+}
+
 void invCMD() {
 	puts("ERROR: Invalid command.");
 	puts("Type \"help\" for list and formats of commands.");
