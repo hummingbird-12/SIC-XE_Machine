@@ -1,4 +1,4 @@
 sicsim: main.h 20161577.c
 	clear
-	gcc -Wall 20161577.c
+	gcc -Wall 20161577.c -lm
 	./a.out

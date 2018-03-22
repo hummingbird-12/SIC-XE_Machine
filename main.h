@@ -10,9 +10,9 @@
 #define CMD_LEN 101
 #define CMD_CNT 11
 #define PAR_MAX 3
-#define MEM_SIZE 1048576
-#define MEM_VLEN 65536
-#define MEM_HLEN 32
+#define MEM_SIZE 1048576 	// 2^20 = 1MB
+#define MEM_VLEN 65536 		// 2^16
+#define MEM_HLEN 32 		// 2^5
 
 typedef struct dirent ENTRY;
 typedef struct stat STBUF;
@@ -58,6 +58,8 @@ COMMAND cmdList[CMD_CNT] = {
 HIST_NODE* hist_head = NULL;
 
 char mem[MEM_VLEN * MEM_HLEN];
+short mem2[MEM_SIZE];
+//char mem2[MEM_SIZE][9];
 
 USR_CMD findCMD(char*);
 

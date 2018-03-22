@@ -147,6 +147,54 @@ void histCMD() {
 }
 
 void dumpCMD(USR_CMD uscmd) {
+	int start, end, i, j;
+
+	start = hexToDec(uscmd.param[0]);
+	end = hexToDec(uscmd.param[1]);
+
+	for(i = start / 16 * 16; i < (end / 16 + 1) * 16; i++) {
+		if(!(i % 16))
+			printf("%05X ", i);
+		if(i < start || i > end)
+			printf("   ");
+		else
+			printf("%02X ", mem2[i]);
+		if(!((i + 1) % 16)) {
+			printf("; ");
+			for(j = i - 15; j <= i; j++)
+				printf("%c", (mem2[j] >= 32 && mem2[j] <= 126) ? mem2[j] : '.');
+			puts("");
+		}
+	}
+}
+
+void editCMD(USR_CMD uscmd) {
+	int add, val;
+	add = hexToDec(uscmd.param[0]);
+	val = hexToDec(uscmd.param[1]);
+	mem2[add] = val;
+}
+
+void fillCMD(USR_CMD uscmd) {
+	int i, start, end, val;
+	start = hexToDec(uscmd.param[0]);
+	end = hexToDec(uscmd.param[1]);
+	val = hexToDec(uscmd.param[2]);
+	for(i = start; i <= end; i++)
+		mem2[i] = val;
+}
+
+void resetCMD() {
+	int i, j = 0;
+	for(i = 0; i < MEM_SIZE; i++) {
+		mem2[i] = j++;
+		if(j == 128)
+			j = 0;
+	}
+}
+
+/*
+void dumpCMD(USR_CMD uscmd) {
 	static int st = 0;
 	int i, j, ed;
 	char* hex;
@@ -259,6 +307,7 @@ void resetCMD() {
 	for(i = 0; i < MEM_VLEN * MEM_HLEN; i++)
 		mem[i] = '0';
 }
+*/
 
 void opCMD(USR_CMD uscmd) {
 
