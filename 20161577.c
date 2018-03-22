@@ -11,7 +11,7 @@ int main() {
 		fgets(inp, CMD_LEN, stdin);
 		inp[strlen(inp) - 1] = '\0';
 		cmdExec = findCMD(inp);
-		if(cmdExec.cmd != inv)
+		if(cmdExec.cmd < invFormat)
 			hist_add(inp);
 
 		switch(cmdExec.cmd) {
@@ -43,8 +43,14 @@ int main() {
 				break;
 			case oplist:
 				break;
-			case inv:
-				invCMD();
+			case invFormat:
+				invFormatCMD();
+				break;
+			case invHex:
+				invHexCMD();
+				break;
+			case invVal:
+				invValCMD();
 				break;
 		}
 	}
@@ -60,7 +66,7 @@ USR_CMD findCMD(char* str) {
 
 	strcpy(inp, str);
 
-	u_cmd.cmd = inv; // initialize as invalid
+	u_cmd.cmd = invFormat; // initialize as invalid
 	u_cmd.param_cnt = 0;
 
 	tok = strtok(inp, delim); // first word of input
@@ -70,21 +76,106 @@ USR_CMD findCMD(char* str) {
 			break;
 		}
 
-	if(u_cmd.cmd == inv) // invalid command
+	if(u_cmd.cmd == invFormat) // invalid command
 		return u_cmd;
 
-	if(cmdList[i].param) { // get parameters
-		j = 0;
-		while((tok = strtok(NULL, delim)))
-			strcpy(u_cmd.param[j++], tok);
-		u_cmd.param_cnt = j;
-		if(j > 3)
-			u_cmd.cmd = inv;
-	}
-	else if((tok = strtok(NULL, delim))) // not expected parameter
-		u_cmd.cmd = inv; // set as invalid
+	// get parameters
+	j = 0;
+	while((tok = strtok(NULL, delim)))
+		strcpy(u_cmd.param[j++], tok);
+	u_cmd.param_cnt = j;
 
+	switch(testValidInput(u_cmd, cmdList[i])) {
+		case FORMAT:
+			u_cmd.cmd = invFormat;
+			break;
+		case HEX:
+			u_cmd.cmd = invHex;
+			break;
+		case VALUE:
+			u_cmd.cmd = invVal;
+			break;
+		default:
+			break;
+	}
 	return u_cmd;
+}
+
+ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
+	int i;
+	int arg[3];
+	ER_CODE code = SAFE;
+	if(usr_cmd.cmd == invFormat)
+		return FORMAT;
+
+	// check argument count
+	switch(usr_cmd.cmd) {
+		// strictly 0 arguments
+		case help:
+		case dir:
+		case quit:
+		case hist:
+		case reset:
+		case oplist:
+			if(usr_cmd.param_cnt)
+				code = FORMAT;
+			break;
+		// strictly 1 argument
+		case op:
+			if(usr_cmd.param_cnt != 1)
+				code = FORMAT;
+			break;
+		// strictly 2 arguments
+		case edit:
+			if(usr_cmd.param_cnt != 2)
+				code = FORMAT;
+			break;
+		// strictly 3 arguments
+		case fill:
+			if(usr_cmd.param_cnt != 3)
+				code = FORMAT;
+			break;
+		// need less than 3
+		case dump:
+			if(usr_cmd.param_cnt > 2)
+				code = FORMAT;
+			break;
+		default:
+			break;
+	}
+	if(code == FORMAT)
+		return code;
+
+	// check hexadecimal number
+	if(format.type == memory) {
+		for(i = 0; i < usr_cmd.param_cnt; i++)
+			if((arg[i] = hexToDec(usr_cmd.param[i])) == -1)
+				code = HEX;
+		switch(usr_cmd.cmd) {
+			case edit:
+				if(arg[0] >= MEM_SIZE || arg[1] > 255)
+					code = VALUE;
+				break;
+			case fill:
+				if(arg[0] >= MEM_SIZE || arg[1] >= MEM_SIZE || arg[0] > arg[1] || arg[2] > 255)
+					code = VALUE;
+				break;
+			case dump:
+				switch(usr_cmd.param_cnt) {
+					case 2:
+						if(arg[1] >= MEM_SIZE || arg[0] > arg[1])
+							code = VALUE;
+					case 1:
+						if(arg[0] >= MEM_SIZE)
+							code = VALUE;
+						break;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return code;
 }
 
 void helpCMD() {
@@ -147,10 +238,20 @@ void histCMD() {
 }
 
 void dumpCMD(USR_CMD uscmd) {
-	int start, end, i, j;
+	static int start = 0;
+	int end, i, j;
 
-	start = hexToDec(uscmd.param[0]);
-	end = hexToDec(uscmd.param[1]);
+	if(start >= MEM_SIZE)
+		start = 0;
+	end = start + 159;
+	if(end >= MEM_SIZE)
+		end = MEM_SIZE - 1;
+	if(uscmd.param_cnt) {
+		start = hexToDec(uscmd.param[0]);
+		end = start + 159;
+		if(uscmd.param_cnt == 2)
+			end = hexToDec(uscmd.param[1]);
+	}
 
 	for(i = start / 16 * 16; i < (end / 16 + 1) * 16; i++) {
 		if(!(i % 16))
@@ -166,6 +267,7 @@ void dumpCMD(USR_CMD uscmd) {
 			puts("");
 		}
 	}
+	start = end + 1;
 }
 
 void editCMD(USR_CMD uscmd) {
@@ -193,122 +295,6 @@ void resetCMD() {
 	}
 }
 
-/*
-void dumpCMD(USR_CMD uscmd) {
-	static int st = 0;
-	int i, j, ed;
-	char* hex;
-	char tmp[3] = {'\0'};
-	ed = st + 160;
-	if(uscmd.param_cnt > 2) {
-		invCMD();
-		return;
-	}
-	if(uscmd.param_cnt) {
-		st = hexToDec(uscmd.param[0]);
-		if(uscmd.param_cnt == 1) {
-			ed = st + 160;
-			strcpy(uscmd.param[1], "100001");
-		}
-		else
-			ed = hexToDec(uscmd.param[1]) + 1;
-		if(!testValidAdr(uscmd.param[0], uscmd.param[1])) {
-			invCMD();
-			return;
-		}
-	}
-	if(ed >= MEM_SIZE)
-		ed = MEM_SIZE;
-
-	hex = decToHex(st / 16 * 16);
-	printf("%s ", hex);
-	free(hex);
-	for(i = st / 16 * 16; i < st; i++)
-		printf("   ");
-	for(i = st; i < ed; i++) {
-		printf("%c%c ", mem[2 * i], mem[2 * i + 1]);
-		if(!((i + 1) % 16) && (i + 1) <= ed) {
-			printf("; ");
-			for(j = 0; j < 10; j++) {
-				strncpy(tmp, mem + (i - 15 + j) * 2, 2);
-				if(hexToDec(tmp) >= 32 && hexToDec(tmp) <= 126)
-					printf("%c", hexToDec(tmp));
-				else
-					printf(".");
-			}
-			puts("");
-			if(i + 1 != ed) {
-				hex = decToHex(i + 1);
-				printf("%s ", hex);
-				free(hex);
-			}
-		}
-	}
-	if(i % 16) {
-		while(i++ % 16)
-			printf("   ");
-		printf("; ");
-		for(j = 0; j < 10; j++) {
-			strncpy(tmp, mem + (i - 17 + j) * 2, 2);
-			if(hexToDec(tmp) >= 32 && hexToDec(tmp) <= 126)
-				printf("%c", hexToDec(tmp));
-			else
-				printf(".");
-		}
-
-		puts("");
-	}
-	st = i;
-}
-
-void editCMD(USR_CMD uscmd) {
-	int i, add = hexToDec(uscmd.param[0]);
-	if(uscmd.param_cnt != 2) {
-		invCMD();
-		return;
-	}
-	for(i = 0; i < 2; i++)
-		if(isalpha(uscmd.param[1][i]))
-			uscmd.param[1][i] = toupper(uscmd.param[1][i]);
-	strncpy(mem + add * 2, uscmd.param[1], 2);
-}
-
-void fillCMD(USR_CMD uscmd) {
-	int st, ed, i;
-	char* hex;
-	USR_CMD tmp;
-	tmp.param_cnt = 2;
-
-	if(uscmd.param_cnt != 3) {
-		invCMD();
-		return;
-	}
-	if(!testValidAdr(uscmd.param[0], uscmd.param[1])) {
-		invCMD();
-		return;
-	}
-	if(!isValidHex(uscmd.param[2]) || strlen(uscmd.param[2]) > 2) {
-		invCMD();
-		return;
-	}
-	st = hexToDec(uscmd.param[0]);
-	ed = hexToDec(uscmd.param[1]) + 1;
-	for(i = 0; i < ed - st; i++) {
-		hex = decToHex(st + i);
-		strcpy(tmp.param[0], hex);
-		strcpy(tmp.param[1], uscmd.param[2]);
-		editCMD(tmp);
-		free(hex);
-	}
-}
-
-void resetCMD() {
-	int i;
-	for(i = 0; i < MEM_VLEN * MEM_HLEN; i++)
-		mem[i] = '0';
-}
-*/
-
 void opCMD(USR_CMD uscmd) {
 
 }
@@ -317,9 +303,19 @@ void oplistCMD() {
 
 }
 
-void invCMD() {
+void invFormatCMD() {
 	puts("ERROR: Invalid command.");
 	puts("Type \"help\" for list and formats of commands.");
+}
+
+void invHexCMD() {
+	puts("ERROR: Incorrect hexadecimal.");
+}
+
+void invValCMD() {
+	puts("ERROR: Invalid address.");
+	puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
+	puts("Edit value range:\t 1B [0x00 ~ 0xFF]");
 }
 
 void hist_add(char* str) {
@@ -348,34 +344,28 @@ void hist_free() {
 	hist_head = NULL;
 }
 
-char* decToHex(int dec) {
-	char* hex = malloc(sizeof(char) * 6);
-	int i = 4;
-	strcpy(hex, "00000\0");
-	while(dec) {
-		hex[i--] = (dec % 16 < 10) ? dec % 16 + '0' : dec % 16 - 10 + 'A';
-		dec /= 16;
-	}
-	return hex;
-}
+/*
+   char* decToHex(int dec) {
+   char* hex = malloc(sizeof(char) * 6);
+   int i = 4;
+   strcpy(hex, "00000\0");
+   while(dec) {
+   hex[i--] = (dec % 16 < 10) ? dec % 16 + '0' : dec % 16 - 10 + 'A';
+   dec /= 16;
+   }
+   return hex;
+   }
+   */
 
 int hexToDec(char* hex) {
 	int i, dec = 0, multiplier = 1;
 	for(i = strlen(hex) - 1; i >= 0; i--) {
-		if(!isalnum(hex[i]))
+		if(!isxdigit(hex[i]))
 			return -1;
 		dec += multiplier * (isdigit(hex[i]) ? (hex[i] - '0') : (toupper(hex[i]) - 'A' + 10));
 		multiplier *= 16;
 	}
 	return dec;
-}
-
-bool isValidHex(char* str) {
-	int i;
-	for(i = 0; str[i]; i++)
-		if(!isxdigit(str[i]))
-			return false;
-	return true;
 }
 
 bool testValidAdr(char* start, char* end) {

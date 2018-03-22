@@ -18,12 +18,16 @@ typedef struct dirent ENTRY;
 typedef struct stat STBUF;
 typedef enum { false, true } bool;
 
+typedef enum { 
+	SAFE, FORMAT, HEX, VALUE
+} ER_CODE;
+
 typedef enum {
 	shell, memory, opcode, invalid
 } CMD_TYPE;
 
 typedef enum {
-	help, dir, quit, hist, dump, edit, fill, reset, op, oplist, inv
+	help, dir, quit, hist, dump, edit, fill, reset, op, oplist, invFormat, invHex, invVal
 } CMD_FUNC;
 
 typedef struct {
@@ -51,7 +55,7 @@ COMMAND cmdList[CMD_CNT] = {
 	{ "dump", "du", memory, dump, true  }, { "edit", "e", memory, edit, true  },
 	{ "fill", "f", memory, fill, true  }, { "reset", "reset", memory, reset, false  },
 	{ "opcode", "opcode", opcode, op, true  }, { "opcodelist", "opcodelist", opcode, oplist, false },
-	{ "invalid", "invalid", invalid, inv, true  }
+	{ "invalid", "invalid", invalid, invFormat, true  }
 
 };
 
@@ -59,9 +63,9 @@ HIST_NODE* hist_head = NULL;
 
 char mem[MEM_VLEN * MEM_HLEN];
 short mem2[MEM_SIZE];
-//char mem2[MEM_SIZE][9];
 
 USR_CMD findCMD(char*);
+ER_CODE testValidInput(USR_CMD, COMMAND);
 
 void helpCMD();
 void dirCMD();
@@ -73,12 +77,14 @@ void fillCMD(USR_CMD);
 void resetCMD();
 void opCMD(USR_CMD);
 void oplistCMD();
-void invCMD();
+void invFormatCMD();
+void invHexCMD();
+void invValCMD();
 
 void hist_add(char*);
 void hist_free();
 
-char* decToHex(int);
+//char* decToHex(int);
 int hexToDec(char*);
-bool isValidHex(char*);
+//bool isValidHex(char*);
 bool testValidAdr(char*, char*);
