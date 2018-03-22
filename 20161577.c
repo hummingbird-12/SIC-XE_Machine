@@ -5,6 +5,7 @@ int main() {
 	USR_CMD cmdExec;
 
 	resetCMD();
+	hash_create();
 
 	while(1) {
 		printf("sicsim> ");
@@ -40,8 +41,10 @@ int main() {
 				resetCMD();
 				break;
 			case op:
+				opCMD(cmdExec);
 				break;
 			case oplist:
+				oplistCMD();
 				break;
 			case invFormat:
 				invFormatCMD();
@@ -296,11 +299,22 @@ void resetCMD() {
 }
 
 void opCMD(USR_CMD uscmd) {
-
 }
 
 void oplistCMD() {
+	HASH_ENTRY* bucket;
+	int i;
 
+	for(i = 0; i < HASH_SIZE; i++) {
+		printf("%2d : ", i);
+		bucket = hash_table[i];
+		while(bucket) {
+			printf("[%s,%s]", bucket->inst, bucket->code);
+			if((bucket = bucket->next))
+				printf(" -> ");
+		}
+		puts("");
+	}
 }
 
 void invFormatCMD() {
@@ -316,6 +330,49 @@ void invValCMD() {
 	puts("ERROR: Invalid address.");
 	puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
 	puts("Edit value range:\t 1B [0x00 ~ 0xFF]");
+}
+
+void hash_create() {
+	FILE* fp = fopen("opcode.txt", "r");
+	char cd[3], ins[10], md[4];
+	HASH_ENTRY* bucket;
+
+	if(!fp) {
+		puts("ERROR: Unable to load \"opcode.txt\".");
+		return;
+	}
+
+	while(fscanf(fp, "%s %s %s", cd, ins, md) == 3) {
+		bucket = malloc(sizeof(HASH_ENTRY));
+		strcpy(bucket->code, cd);
+		strcpy(bucket->inst, ins);
+		bucket->codeVal = hexToDec(cd);
+		bucket->mode = md[0] - '1';
+		bucket->next = NULL;
+		
+		hash_add_bucket(hash_function(bucket->inst), bucket);
+	}
+
+	if(fclose(fp)) {
+		puts("WARNING: Error closing \"opcode.txt\".");
+		return;
+	}
+}
+
+int hash_function(char* inst) {
+	return abs((int) inst[0] * abs((int) inst[0] * 16 - inst[1] - inst[2])  ) % HASH_SIZE;
+}
+
+void hash_add_bucket(int hash, HASH_ENTRY* bucket) {
+	HASH_ENTRY* cur = hash_table[hash];
+
+	if(!cur) {
+		hash_table[hash] = bucket;
+		return;
+	}
+	while(cur->next)
+		cur = cur->next;
+	cur->next = bucket;
 }
 
 void hist_add(char* str) {
@@ -343,19 +400,6 @@ void hist_free() {
 	}
 	hist_head = NULL;
 }
-
-/*
-   char* decToHex(int dec) {
-   char* hex = malloc(sizeof(char) * 6);
-   int i = 4;
-   strcpy(hex, "00000\0");
-   while(dec) {
-   hex[i--] = (dec % 16 < 10) ? dec % 16 + '0' : dec % 16 - 10 + 'A';
-   dec /= 16;
-   }
-   return hex;
-   }
-   */
 
 int hexToDec(char* hex) {
 	int i, dec = 0, multiplier = 1;

@@ -8,11 +8,12 @@
 #include <sys/stat.h>
 
 #define CMD_LEN 101
-#define CMD_CNT 11
+#define CMD_CNT 257
 #define PAR_MAX 3
 #define MEM_SIZE 1048576 	// 2^20 = 1MB
 #define MEM_VLEN 65536 		// 2^16
 #define MEM_HLEN 32 		// 2^5
+#define HASH_SIZE 20
 
 typedef struct dirent ENTRY;
 typedef struct stat STBUF;
@@ -49,6 +50,14 @@ typedef struct hist_struct {
 	struct hist_struct* next;
 } HIST_NODE;
 
+typedef struct hash_struct {
+	int codeVal;
+	char code[3];
+	char inst[CMD_LEN];
+	enum { m1, m2, m34 } mode;
+	struct hash_struct* next;
+} HASH_ENTRY;
+
 COMMAND cmdList[CMD_CNT] = {
 	{ "help", "h", shell, help, false  }, { "dir", "d", shell, dir, false  },
 	{ "quit", "q", shell, quit, false  }, { "history", "hi", shell, hist, false  },
@@ -60,6 +69,7 @@ COMMAND cmdList[CMD_CNT] = {
 };
 
 HIST_NODE* hist_head = NULL;
+HASH_ENTRY* hash_table[HASH_SIZE];
 
 char mem[MEM_VLEN * MEM_HLEN];
 short mem2[MEM_SIZE];
@@ -81,10 +91,12 @@ void invFormatCMD();
 void invHexCMD();
 void invValCMD();
 
+void hash_create();
+int hash_function(char*);
+void hash_add_bucket(int, HASH_ENTRY*);
+
 void hist_add(char*);
 void hist_free();
 
-//char* decToHex(int);
 int hexToDec(char*);
-//bool isValidHex(char*);
 bool testValidAdr(char*, char*);
