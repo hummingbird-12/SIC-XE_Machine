@@ -71,6 +71,9 @@ USR_CMD findCMD(char* str) {
 
 	u_cmd.cmd = invFormat; // initialize as invalid
 	u_cmd.param_cnt = 0;
+	
+	if(!strlen(str))
+		return u_cmd;
 
 	tok = strtok(inp, delim); // first word of input
 	for(i = 0; i < CMD_CNT - 1; i++)
@@ -266,7 +269,7 @@ void dumpCMD(USR_CMD uscmd) {
 		if(!((i + 1) % 16)) {
 			printf("; ");
 			for(j = i - 15; j <= i; j++)
-				printf("%c", (mem2[j] >= 32 && mem2[j] <= 126) ? mem2[j] : '.');
+				printf("%c", ((j >= start && j <= end) && mem2[j] >= 32 && mem2[j] <= 126) ? mem2[j] : '.');
 			puts("");
 		}
 	}
@@ -299,6 +302,16 @@ void resetCMD() {
 }
 
 void opCMD(USR_CMD uscmd) {
+	HASH_ENTRY* bucket;
+	bucket = hash_table[hash_function(uscmd.param[0])];
+	while(bucket && strcmp(bucket->inst, uscmd.param[0]))
+		bucket = bucket->next;
+	if(bucket)
+		printf("opcode is %s\n", bucket->code);
+	else {
+		puts("ERROR: opcode not found.");
+		puts("Type \"opcodelist\" for list of available opcodes.");
+	}
 }
 
 void oplistCMD() {
@@ -360,7 +373,7 @@ void hash_create() {
 }
 
 int hash_function(char* inst) {
-	return abs((int) inst[0] * abs((int) inst[0] * 16 - inst[1] - inst[2])  ) % HASH_SIZE;
+	return abs( (int) inst[0] * 2 + abs(inst[0] + inst[1] + inst[2]) ) % HASH_SIZE;
 }
 
 void hash_add_bucket(int hash, HASH_ENTRY* bucket) {
