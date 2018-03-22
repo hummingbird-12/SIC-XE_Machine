@@ -76,6 +76,8 @@ USR_CMD findCMD(char* str) {
 		return u_cmd;
 
 	tok = strtok(inp, delim); // first word of input
+	if(!tok)
+		return u_cmd;
 	for(i = 0; i < CMD_CNT - 1; i++)
 		if(!strcmp(tok, cmdList[i].str) || !strcmp(tok, cmdList[i].abb)) {
 			u_cmd.cmd = cmdList[i].func;
