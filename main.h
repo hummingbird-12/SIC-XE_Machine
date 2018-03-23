@@ -7,9 +7,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define CMD_LEN 101
-#define CMD_CNT 257
-#define PAR_MAX 3
+#define CMD_LEN 257
+#define CMD_CNT 11
+#define ARG_MAX 3
 #define MEM_SIZE 1048576 	// 2^20 = 1MB
 #define MEM_VLEN 65536 		// 2^16
 #define MEM_HLEN 32 		// 2^5
@@ -36,13 +36,13 @@ typedef struct {
 	char abb[CMD_LEN];
 	CMD_TYPE type;
 	CMD_FUNC func;
-	bool param;
+	bool arg;
 } COMMAND;
 
 typedef struct {
 	CMD_FUNC cmd;
-	short param_cnt;
-	char param[PAR_MAX][10];
+	short arg_cnt;
+	char arg[ARG_MAX][10];
 } USR_CMD;
 
 typedef struct hist_struct {

@@ -2,6 +2,8 @@
 
 int main() {
 	char inp[CMD_LEN];
+	char tmp[CMD_LEN];
+	int i, j;
 	USR_CMD cmdExec;
 
 	resetCMD();
@@ -11,7 +13,18 @@ int main() {
 		printf("sicsim> ");
 		fgets(inp, CMD_LEN, stdin);
 		inp[strlen(inp) - 1] = '\0';
-		cmdExec = findCMD(inp);
+		
+		j = 0;
+		for(i = 0; inp[i]; i++) {
+			if(inp[i] == ',') {
+				strcpy(tmp + j, " , ");
+				j += 3;
+			}
+			else
+				tmp[j++] = inp[i];
+		}
+		tmp[j] = '\0';
+		cmdExec = findCMD(tmp);
 		if(cmdExec.cmd < invFormat)
 			hist_add(inp);
 
@@ -62,7 +75,7 @@ int main() {
 
 USR_CMD findCMD(char* str) {
 	int i, j;
-	char delim[] = " ,\t\n";
+	char delim[] = " \t\n";
 	char inp[CMD_LEN];
 	char* tok;
 	USR_CMD u_cmd;
@@ -70,7 +83,7 @@ USR_CMD findCMD(char* str) {
 	strcpy(inp, str);
 
 	u_cmd.cmd = invFormat; // initialize as invalid
-	u_cmd.param_cnt = 0;
+	u_cmd.arg_cnt = 0;
 	
 	if(!strlen(str))
 		return u_cmd;
@@ -87,11 +100,30 @@ USR_CMD findCMD(char* str) {
 	if(u_cmd.cmd == invFormat) // invalid command
 		return u_cmd;
 
-	// get parameters
+	// get arguments
+	j = 0;
+	while(tok) {
+		tok = strtok(NULL, delim);
+		if(!j && !tok)
+			break;
+		if((j && !tok) || tok[0] == ',') {
+			u_cmd.cmd = invFormat;
+			return u_cmd;
+		}
+		strcpy(u_cmd.arg[j++], tok);
+		tok = strtok(NULL, delim);
+		if(tok && tok[0] != ',') {
+			u_cmd.cmd = invFormat;
+			return u_cmd;
+		}
+	}
+	u_cmd.arg_cnt = j;
+	/*
 	j = 0;
 	while((tok = strtok(NULL, delim)))
-		strcpy(u_cmd.param[j++], tok);
-	u_cmd.param_cnt = j;
+		strcpy(u_cmd.arg[j++], tok);
+	u_cmd.arg_cnt = j;
+	*/
 
 	switch(testValidInput(u_cmd, cmdList[i])) {
 		case FORMAT:
@@ -125,27 +157,27 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 		case hist:
 		case reset:
 		case oplist:
-			if(usr_cmd.param_cnt)
+			if(usr_cmd.arg_cnt)
 				code = FORMAT;
 			break;
 		// strictly 1 argument
 		case op:
-			if(usr_cmd.param_cnt != 1)
+			if(usr_cmd.arg_cnt != 1)
 				code = FORMAT;
 			break;
 		// strictly 2 arguments
 		case edit:
-			if(usr_cmd.param_cnt != 2)
+			if(usr_cmd.arg_cnt != 2)
 				code = FORMAT;
 			break;
 		// strictly 3 arguments
 		case fill:
-			if(usr_cmd.param_cnt != 3)
+			if(usr_cmd.arg_cnt != 3)
 				code = FORMAT;
 			break;
 		// need less than 3
 		case dump:
-			if(usr_cmd.param_cnt > 2)
+			if(usr_cmd.arg_cnt > 2)
 				code = FORMAT;
 			break;
 		default:
@@ -156,8 +188,8 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 
 	// check hexadecimal number
 	if(format.type == memory) {
-		for(i = 0; i < usr_cmd.param_cnt; i++)
-			if((arg[i] = hexToDec(usr_cmd.param[i])) == -1)
+		for(i = 0; i < usr_cmd.arg_cnt; i++)
+			if((arg[i] = hexToDec(usr_cmd.arg[i])) == -1)
 				code = HEX;
 		switch(usr_cmd.cmd) {
 			case edit:
@@ -169,7 +201,7 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 					code = VALUE;
 				break;
 			case dump:
-				switch(usr_cmd.param_cnt) {
+				switch(usr_cmd.arg_cnt) {
 					case 2:
 						if(arg[1] >= MEM_SIZE || arg[0] > arg[1])
 							code = VALUE;
@@ -223,6 +255,8 @@ void dirCMD() {
 			printf("*");
 
 		ent = readdir(dir); // read next entry
+		if(ent)
+			puts("");
 	}
 	closedir(dir);
 	puts("");
@@ -254,11 +288,11 @@ void dumpCMD(USR_CMD uscmd) {
 	end = start + 159;
 	if(end >= MEM_SIZE)
 		end = MEM_SIZE - 1;
-	if(uscmd.param_cnt) {
-		start = hexToDec(uscmd.param[0]);
+	if(uscmd.arg_cnt) {
+		start = hexToDec(uscmd.arg[0]);
 		end = start + 159;
-		if(uscmd.param_cnt == 2)
-			end = hexToDec(uscmd.param[1]);
+		if(uscmd.arg_cnt == 2)
+			end = hexToDec(uscmd.arg[1]);
 	}
 
 	for(i = start / 16 * 16; i < (end / 16 + 1) * 16; i++) {
@@ -280,16 +314,16 @@ void dumpCMD(USR_CMD uscmd) {
 
 void editCMD(USR_CMD uscmd) {
 	int add, val;
-	add = hexToDec(uscmd.param[0]);
-	val = hexToDec(uscmd.param[1]);
+	add = hexToDec(uscmd.arg[0]);
+	val = hexToDec(uscmd.arg[1]);
 	mem2[add] = val;
 }
 
 void fillCMD(USR_CMD uscmd) {
 	int i, start, end, val;
-	start = hexToDec(uscmd.param[0]);
-	end = hexToDec(uscmd.param[1]);
-	val = hexToDec(uscmd.param[2]);
+	start = hexToDec(uscmd.arg[0]);
+	end = hexToDec(uscmd.arg[1]);
+	val = hexToDec(uscmd.arg[2]);
 	for(i = start; i <= end; i++)
 		mem2[i] = val;
 }
@@ -305,8 +339,8 @@ void resetCMD() {
 
 void opCMD(USR_CMD uscmd) {
 	HASH_ENTRY* bucket;
-	bucket = hash_table[hash_function(uscmd.param[0])];
-	while(bucket && strcmp(bucket->inst, uscmd.param[0]))
+	bucket = hash_table[hash_function(uscmd.arg[0])];
+	while(bucket && strcmp(bucket->inst, uscmd.arg[0]))
 		bucket = bucket->next;
 	if(bucket)
 		printf("opcode is %s\n", bucket->code);
