@@ -15,23 +15,26 @@ int main() {
 
 	while(1) {
 		printf("sicsim> ");
-		fgets(inp, CMD_LEN, stdin);
-		inp[strlen(inp) - 1] = '\0';
+		fgets(inp, CMD_LEN, stdin); // get input string
+		inp[strlen(inp) - 1] = '\0'; // replace \n with null character
 		
+		// copy input string to tmp but place one space before and after comma ','
 		j = 0;
 		for(i = 0; inp[i]; i++) {
 			if(inp[i] == ',') {
-				strcpy(tmp + j, " , ");
+				strcpy(tmp + j, " , "); // place space around commma ','
 				j += 3;
 			}
 			else
 				tmp[j++] = inp[i];
 		}
 		tmp[j] = '\0';
-		cmdExec = findCMD(tmp);
-		if(cmdExec.cmd < invFormat)
-			hist_add(inp);
 
+		cmdExec = findCMD(tmp); // find the command format from input string
+		if(cmdExec.cmd < invFormat)
+			hist_add(inp); // if command is not invalid add to history
+
+		// call function for each command
 		switch(cmdExec.cmd) {
 			case help:
 				helpCMD();

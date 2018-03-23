@@ -1,7 +1,7 @@
 #include "main.h"
 #include "shell.h"
 
-HIST_NODE* hist_head = NULL;
+HIST_NODE* hist_head = NULL; // head of history linked list
 
 void helpCMD() {
 	printf("h[elp]\n"
@@ -32,7 +32,7 @@ void dirCMD() {
 		path[2] = '\0'; // clear path string
 		e_str = ent->d_name; // entry name
 		stat(strcat(path, e_str), &buf);
-		printf("\t%-s", e_str); // print entry name
+		printf("%-s", e_str); // print entry name
 
 		if(S_ISDIR(buf.st_mode)) // check for directory
 			printf("/");
@@ -49,8 +49,8 @@ void dirCMD() {
 
 void quitCMD() {
 	puts("Exiting SIC...");
-	hist_free();
-	hash_free();
+	hist_free(); // free history linked list
+	hash_free(); // free hash table
 	exit(0);
 }
 
@@ -59,8 +59,8 @@ void histCMD() {
 	int cnt = 1;
 
 	while(cur) {
-		printf("\t%-3d  ", cnt++);
-		puts(cur->str);
+		printf("%-3d  ", cnt++);
+		puts(cur->str); // print command in history
 		cur = cur->next;
 	}
 }
@@ -72,7 +72,7 @@ void hist_add(char* str) {
 	strcpy(new_hist->str, str);
 	new_hist->next = NULL;
 
-	if(!hist_head) {
+	if(!hist_head) { // if history linked list is empty
 		hist_head = new_hist;
 		return;
 	}
