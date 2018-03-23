@@ -50,6 +50,7 @@ void dirCMD() {
 void quitCMD() {
 	puts("Exiting SIC...");
 	hist_free();
+	hash_free();
 	exit(0);
 }
 

@@ -57,3 +57,4 @@ typedef struct hash_struct {
 } HASH_ENTRY;
 
 int hexToDec(char*);
+void hash_free();

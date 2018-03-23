@@ -72,3 +72,18 @@ void hash_add_bucket(int hash, HASH_ENTRY* bucket) {
 		cur = cur->next;
 	cur->next = bucket;
 }
+
+void hash_free() {
+	HASH_ENTRY* cur;
+	HASH_ENTRY* nex;
+	int i;
+	for(i = 0; i < HASH_SIZE; i++) {
+		cur = hash_table[i];
+		while(cur) {
+			nex = cur->next;
+			free(cur);
+			cur = nex;
+		}
+		hash_table[i] = NULL;
+	}
+}

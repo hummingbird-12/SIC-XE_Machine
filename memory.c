@@ -51,10 +51,7 @@ void fillCMD(USR_CMD uscmd) {
 }
 
 void resetCMD() {
-	int i, j = 0;
-	for(i = 0; i < MEM_SIZE; i++) {
-		mem[i] = j++;
-		if(j == 128)
-			j = 0;
-	}
+	int i;
+	for(i = 0; i < MEM_SIZE; i++)
+		mem[i] = 0;
 }

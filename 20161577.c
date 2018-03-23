@@ -5,13 +5,13 @@
 #include "hash.h"
 
 int main() {
-	char inp[CMD_LEN];
-	char tmp[CMD_LEN];
+	char inp[CMD_LEN]; // input string
+	char tmp[CMD_LEN]; // temporary string to copy input
 	int i, j;
 	USR_CMD cmdExec;
 
-	resetCMD();
-	hash_create();
+	resetCMD(); // initialize memory
+	hash_create(); // create hash table of opcodes
 
 	while(1) {
 		printf("sicsim> ");
