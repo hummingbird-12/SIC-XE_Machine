@@ -3,7 +3,9 @@
 ## Description
 
 This is the first project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
+
 It is a simple shell system made with C.
+
 You may play around with different commands available, have a look at how memory is managed by a system and learn about simple opcodes.
 
 
@@ -34,6 +36,9 @@ This system will further be improved with more features such as assembler, etc.
 ## About the Developer
 
 Inho Kim,
+
 Undergraduate student of Dept. of Computer Science and Engineering,
+
 Sogang University,
+
 Seoul, South Korea
