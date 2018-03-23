@@ -118,12 +118,6 @@ USR_CMD findCMD(char* str) {
 		}
 	}
 	u_cmd.arg_cnt = j;
-	/*
-	j = 0;
-	while((tok = strtok(NULL, delim)))
-		strcpy(u_cmd.arg[j++], tok);
-	u_cmd.arg_cnt = j;
-	*/
 
 	switch(testValidInput(u_cmd, cmdList[i])) {
 		case FORMAT:
@@ -301,11 +295,11 @@ void dumpCMD(USR_CMD uscmd) {
 		if(i < start || i > end)
 			printf("   ");
 		else
-			printf("%02X ", mem2[i]);
+			printf("%02X ", mem[i]);
 		if(!((i + 1) % 16)) {
 			printf("; ");
 			for(j = i - 15; j <= i; j++)
-				printf("%c", ((j >= start && j <= end) && mem2[j] >= 32 && mem2[j] <= 126) ? mem2[j] : '.');
+				printf("%c", ((j >= start && j <= end) && mem[j] >= 32 && mem[j] <= 126) ? mem[j] : '.');
 			puts("");
 		}
 	}
@@ -316,7 +310,7 @@ void editCMD(USR_CMD uscmd) {
 	int add, val;
 	add = hexToDec(uscmd.arg[0]);
 	val = hexToDec(uscmd.arg[1]);
-	mem2[add] = val;
+	mem[add] = val;
 }
 
 void fillCMD(USR_CMD uscmd) {
@@ -325,13 +319,13 @@ void fillCMD(USR_CMD uscmd) {
 	end = hexToDec(uscmd.arg[1]);
 	val = hexToDec(uscmd.arg[2]);
 	for(i = start; i <= end; i++)
-		mem2[i] = val;
+		mem[i] = val;
 }
 
 void resetCMD() {
 	int i, j = 0;
 	for(i = 0; i < MEM_SIZE; i++) {
-		mem2[i] = j++;
+		mem[i] = j++;
 		if(j == 128)
 			j = 0;
 	}
@@ -459,11 +453,4 @@ int hexToDec(char* hex) {
 		multiplier *= 16;
 	}
 	return dec;
-}
-
-bool testValidAdr(char* start, char* end) {
-	int st = hexToDec(start), ed = hexToDec(end);
-	if(st + ed < 0 || st > ed || st > MEM_VLEN * MEM_HLEN)
-		return false;
-	return true;
 }

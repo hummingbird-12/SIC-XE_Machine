@@ -11,8 +11,6 @@
 #define CMD_CNT 11
 #define ARG_MAX 3
 #define MEM_SIZE 1048576 	// 2^20 = 1MB
-#define MEM_VLEN 65536 		// 2^16
-#define MEM_HLEN 32 		// 2^5
 #define HASH_SIZE 20
 
 typedef struct dirent ENTRY;
@@ -71,8 +69,7 @@ COMMAND cmdList[CMD_CNT] = {
 HIST_NODE* hist_head = NULL;
 HASH_ENTRY* hash_table[HASH_SIZE];
 
-char mem[MEM_VLEN * MEM_HLEN];
-short mem2[MEM_SIZE];
+short mem[MEM_SIZE];
 
 USR_CMD findCMD(char*);
 ER_CODE testValidInput(USR_CMD, COMMAND);
@@ -99,4 +96,3 @@ void hist_add(char*);
 void hist_free();
 
 int hexToDec(char*);
-bool testValidAdr(char*, char*);
