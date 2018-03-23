@@ -1,8 +1,8 @@
 sicsim: main.o cmdProc.o shell.o memory.o hash.o
 	gcc -Wall -o sicsim main.o cmdProc.o shell.o memory.o hash.o
 
-main.o: main.h main.c
-	gcc -Wall -c -o main.o main.c
+main.o: main.h 20161577.c
+	gcc -Wall -c -o main.o 20161577.c
 
 cmdProc.o: main.h cmdProc.c
 	gcc -Wall -c -o cmdProc.o cmdProc.c
