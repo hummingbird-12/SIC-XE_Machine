@@ -56,43 +56,4 @@ typedef struct hash_struct {
 	struct hash_struct* next;
 } HASH_ENTRY;
 
-COMMAND cmdList[CMD_CNT] = {
-	{ "help", "h", shell, help, false  }, { "dir", "d", shell, dir, false  },
-	{ "quit", "q", shell, quit, false  }, { "history", "hi", shell, hist, false  },
-	{ "dump", "du", memory, dump, true  }, { "edit", "e", memory, edit, true  },
-	{ "fill", "f", memory, fill, true  }, { "reset", "reset", memory, reset, false  },
-	{ "opcode", "opcode", opcode, op, true  }, { "opcodelist", "opcodelist", opcode, oplist, false },
-	{ "invalid", "invalid", invalid, invFormat, true  }
-
-};
-
-HIST_NODE* hist_head = NULL;
-HASH_ENTRY* hash_table[HASH_SIZE];
-
-short mem[MEM_SIZE];
-
-USR_CMD findCMD(char*);
-ER_CODE testValidInput(USR_CMD, COMMAND);
-
-void helpCMD();
-void dirCMD();
-void quitCMD();
-void histCMD();
-void dumpCMD(USR_CMD);
-void editCMD(USR_CMD);
-void fillCMD(USR_CMD);
-void resetCMD();
-void opCMD(USR_CMD);
-void oplistCMD();
-void invFormatCMD();
-void invHexCMD();
-void invValCMD();
-
-void hash_create();
-int hash_function(char*);
-void hash_add_bucket(int, HASH_ENTRY*);
-
-void hist_add(char*);
-void hist_free();
-
 int hexToDec(char*);

@@ -1,4 +1,7 @@
 #include "main.h"
+#include "shell.h"
+
+HIST_NODE* hist_head = NULL;
 
 void helpCMD() {
 	printf("h[elp]\n"
@@ -61,20 +64,6 @@ void histCMD() {
 	}
 }
 
-void invFormatCMD() {
-	puts("ERROR: Invalid command.");
-	puts("Type \"help\" for list and formats of commands.");
-}
-
-void invHexCMD() {
-	puts("ERROR: Incorrect hexadecimal.");
-}
-
-void invValCMD() {
-	puts("ERROR: Invalid address.");
-	puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
-	puts("Edit value range:\t 1B [0x00 ~ 0xFF]");
-}
 
 void hist_add(char* str) {
 	HIST_NODE* cur = hist_head;

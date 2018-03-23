@@ -1,4 +1,5 @@
 #include "main.h"
+#include "memory.h"
 
 void dumpCMD(USR_CMD uscmd) {
 	static int start = 0;

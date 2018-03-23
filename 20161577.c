@@ -1,4 +1,8 @@
 #include "main.h"
+#include "cmdProc.h"
+#include "shell.h"
+#include "memory.h"
+#include "hash.h"
 
 int main() {
 	char inp[CMD_LEN];

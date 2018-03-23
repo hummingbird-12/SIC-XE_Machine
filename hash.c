@@ -1,4 +1,5 @@
 #include "main.h"
+#include "hash.h"
 
 void opCMD(USR_CMD uscmd) {
 	HASH_ENTRY* bucket;

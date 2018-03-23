@@ -1,4 +1,16 @@
 #include "main.h"
+#include "cmdProc.h"
+
+COMMAND cmdList[CMD_CNT] = {
+	{ "help", "h", shell, help, false  }, { "dir", "d", shell, dir, false  },
+	{ "quit", "q", shell, quit, false  }, { "history", "hi", shell, hist, false  },
+	{ "dump", "du", memory, dump, true  }, { "edit", "e", memory, edit, true  },
+	{ "fill", "f", memory, fill, true  }, { "reset", "reset", memory, reset, false  },
+	{ "opcode", "opcode", opcode, op, true  }, { "opcodelist", "opcodelist", opcode, oplist, false },
+	{ "invalid", "invalid", invalid, invFormat, true  }
+
+};
+
 
 USR_CMD findCMD(char* str) {
 	int i, j;
@@ -137,6 +149,21 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 		}
 	}
 	return code;
+}
+
+void invFormatCMD() {
+	puts("ERROR: Invalid command.");
+	puts("Type \"help\" for list and formats of commands.");
+}
+
+void invHexCMD() {
+	puts("ERROR: Incorrect hexadecimal.");
+}
+
+void invValCMD() {
+	puts("ERROR: Invalid address.");
+	puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
+	puts("Edit value range:\t 1B [0x00 ~ 0xFF]");
 }
 
 int hexToDec(char* hex) {
