@@ -1,4 +1,4 @@
-#include "main.h"
+#include "20161577.h"
 #include "hash.h"
 
 void opCMD(INPUT_CMD ipcmd) {
