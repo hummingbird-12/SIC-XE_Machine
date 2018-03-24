@@ -1,5 +1,5 @@
-sicsim: main.o cmdProc.o shell.o memory.o hash.o
-	gcc -Wall -o sicsim main.o cmdProc.o shell.o memory.o hash.o
+20161577.out: main.o cmdProc.o shell.o memory.o hash.o
+	gcc -Wall -o 20161577.out main.o cmdProc.o shell.o memory.o hash.o
 
 main.o: 20161577.h 20161577.c
 	gcc -Wall -c -o main.o 20161577.c
@@ -18,4 +18,4 @@ hash.o: 20161577.h hash.c
 
 clean:
 	rm *.o
-	rm sicsim
+	rm 20161577.out
