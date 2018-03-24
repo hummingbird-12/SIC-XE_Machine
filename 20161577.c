@@ -1,17 +1,17 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * 																 *
- * 					  Sogang University							 *
- *        Department of Computer Science and Engineering		 *
- *																 *
- * Subject name: System Programming								 *
- * Project title: [1] SIC/XE Machine - The Basics				 *
- *																 *
- * Author: Inho Kim												 *
- * Student ID: 20161577											 *
- *																 *
- * File name: 20161577.c										 *
- * File description: Main file for the project.					 *
- *																 *
+ *                                                               *
+ *                    Sogang University                          *
+ *         Department of Computer Science and Engineering        *
+ *                                                               *
+ * Subject name: System Programming                              *
+ * Project title: [1] SIC/XE Machine - The Basics                *
+ *                                                               *
+ * Author: Inho Kim                                              *
+ * Student ID: 20161577                                          *
+ *                                                               *
+ * File name: 20161577.c                                         *
+ * File description: Main file for the project.                  *
+ *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "20161577.h"

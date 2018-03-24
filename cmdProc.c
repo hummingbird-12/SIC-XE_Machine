@@ -1,17 +1,17 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * 																 *
- * 					  Sogang University							 *
- *        Department of Computer Science and Engineering		 *
- *																 *
- * Subject name: System Programming								 *
- * Project title: [1] SIC/XE Machine - The Basics				 *
- *																 *
- * Author: Inho Kim												 *
- * Student ID: 20161577											 *
- *																 *
- * File name: cmdProc.c											 *
- * File description: Tasks related to process input by user.	 *
- *																 *
+ *                                                               *
+ *                    Sogang University                          *
+ *         Department of Computer Science and Engineering        *
+ *                                                               *
+ * Subject name: System Programming                              *
+ * Project title: [1] SIC/XE Machine - The Basics                *
+ *                                                               *
+ * Author: Inho Kim                                              *
+ * Student ID: 20161577                                          *
+ *                                                               *
+ * File name: cmdProc.c                                          *
+ * File description: Tasks related to process input by user.     *
+ *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "20161577.h"

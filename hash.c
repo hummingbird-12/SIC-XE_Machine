@@ -9,8 +9,8 @@
  * Author: Inho Kim												 *
  * Student ID: 20161577											 *
  *																 *
- * File name: hash.c											 *
- * File description: Tasks handling opcode and hash table.		 *
+ * File name: hash.c                                             *
+ * File description: Tasks handling opcode and hash table.       *
  *																 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
