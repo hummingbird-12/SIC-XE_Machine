@@ -20,90 +20,90 @@
 HIST_NODE* histHead = NULL; // head of history linked list
 
 void helpCMD() {
-	printf("h[elp]\n"
-			"d[ir]\n"
-			"q[uit]\n"
-			"hi[story]\n"
-			"du[mp] [start, end]\n"
-			"e[dit] address, value\n"
-			"f[ill] start, end, value\n"
-			"reset\n"
-			"opcode mnemonic\n"
-			"opcodelist\n");
+    printf("h[elp]\n"
+            "d[ir]\n"
+            "q[uit]\n"
+            "hi[story]\n"
+            "du[mp] [start, end]\n"
+            "e[dit] address, value\n"
+            "f[ill] start, end, value\n"
+            "reset\n"
+            "opcode mnemonic\n"
+            "opcodelist\n");
 }
 
 void dirCMD() {
-	DIR* dir = opendir("."); // current directory
-	char* entStr;
-	char path[258] = "./"; // entry path string
-	ENTRY* ent; // entry
-	STBUF buf; // stat
+    DIR* dir = opendir("."); // current directory
+    char* entStr;
+    char path[258] = "./"; // entry path string
+    ENTRY* ent; // entry
+    STBUF buf; // stat
 
-	if(!dir) {
-		puts("ERROR opening directory...");
-		return;
-	}
-	ent = readdir(dir); // read entry
-	while(ent) {
-		path[2] = '\0'; // clear path string
-		entStr = ent->d_name; // entry name
-		stat(strcat(path, entStr), &buf);
-		printf("%-s", entStr); // print entry name
+    if(!dir) {
+        puts("ERROR opening directory...");
+        return;
+    }
+    ent = readdir(dir); // read entry
+    while(ent) {
+        path[2] = '\0'; // clear path string
+        entStr = ent->d_name; // entry name
+        stat(strcat(path, entStr), &buf);
+        printf("%-s", entStr); // print entry name
 
-		if(S_ISDIR(buf.st_mode)) // check for directory
-			printf("/");
-		else if(buf.st_mode & S_IXUSR) // check for exec file
-			printf("*");
+        if(S_ISDIR(buf.st_mode)) // check for directory
+            printf("/");
+        else if(buf.st_mode & S_IXUSR) // check for exec file
+            printf("*");
 
-		ent = readdir(dir); // read next entry
-		if(ent)
-			puts("");
-	}
-	closedir(dir);
-	puts("");
+        ent = readdir(dir); // read next entry
+        if(ent)
+            puts("");
+    }
+    closedir(dir);
+    puts("");
 }
 
 void quitCMD() {
-	puts("Exiting SIC...");
-	histFree(); // free history linked list
-	hashFree(); // free hash table
-	exit(0);
+    puts("Exiting SIC...");
+    histFree(); // free history linked list
+    hashFree(); // free hash table
+    exit(0);
 }
 
 void histCMD() {
-	HIST_NODE* cur = histHead;
-	int cnt = 1;
+    HIST_NODE* cur = histHead;
+    int cnt = 1;
 
-	while(cur) {
-		printf("%-3d  ", cnt++);
-		puts(cur->str); // print command in history
-		cur = cur->next;
-	}
+    while(cur) {
+        printf("%-3d  ", cnt++);
+        puts(cur->str); // print command in history
+        cur = cur->next;
+    }
 }
 
 
 void histAdd(char* str) {
-	HIST_NODE* cur = histHead;
-	HIST_NODE* newHist = malloc(sizeof(HIST_NODE));
-	strcpy(newHist->str, str);
-	newHist->next = NULL;
+    HIST_NODE* cur = histHead;
+    HIST_NODE* newHist = malloc(sizeof(HIST_NODE));
+    strcpy(newHist->str, str);
+    newHist->next = NULL;
 
-	if(!histHead) { // if history linked list is empty
-		histHead = newHist;
-		return;
-	}
-	while(cur->next)
-		cur = cur->next;
-	cur->next = newHist;
+    if(!histHead) { // if history linked list is empty
+        histHead = newHist;
+        return;
+    }
+    while(cur->next)
+        cur = cur->next;
+    cur->next = newHist;
 }
 
 void histFree() {
-	HIST_NODE* cur = histHead;
-	HIST_NODE* nex;
-	while(cur) {
-		nex = cur->next;
-		free(cur);
-		cur = nex;
-	}
-	histHead = NULL;
+    HIST_NODE* cur = histHead;
+    HIST_NODE* nex;
+    while(cur) {
+        nex = cur->next;
+        free(cur);
+        cur = nex;
+    }
+    histHead = NULL;
 }
