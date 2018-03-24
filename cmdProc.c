@@ -166,7 +166,7 @@ void invHexCMD() {
 void invValCMD() {
 	puts("ERROR: Invalid address.");
 	puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
-	puts("Edit value range:\t 1B [0x00 ~ 0xFF]");
+	puts("Edit/Fill value range:\t 1B [0x00 ~ 0xFF]");
 }
 
 int hexToDec(char* hex) {
