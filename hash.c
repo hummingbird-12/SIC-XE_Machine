@@ -1,3 +1,19 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * 																 *
+ * 					  Sogang University							 *
+ *        Department of Computer Science and Engineering		 *
+ *																 *
+ * Subject name: System Programming								 *
+ * Project title: [1] SIC/XE Machine - The Basics				 *
+ *																 *
+ * Author: Inho Kim												 *
+ * Student ID: 20161577											 *
+ *																 *
+ * File name: hash.c											 *
+ * File description: Tasks handling opcode and hash table.		 *
+ *																 *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include "20161577.h"
 #include "hash.h"
 
