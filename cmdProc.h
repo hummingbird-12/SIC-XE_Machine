@@ -14,7 +14,7 @@
  *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-INPUT_CMD findCMD(char*);                   // function to find command type of input
+INPUT_CMD findCMD(char*);                       // function to find command type of input
 ERROR_CODE testValidInput(INPUT_CMD, COMMAND);  // function to check validity of input command
 
 void invFormatCMD();    // called when invalid format input

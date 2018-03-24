@@ -33,17 +33,17 @@ typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
 typedef enum { false, true } bool;  // workaround for bool type in C
 
-// error codes
+// error codes, for better readability
 typedef enum { 
     SAFE, FORMAT, HEX, VALUE
 } ERROR_CODE;
 
-// command types
+// command types, for better readability
 typedef enum {
     shell, memory, opcode, invalid
 } CMD_TYPE;
 
-// command functions
+// command functions, for better readablitiy
 typedef enum {
     help, dir, quit, hist, dump, edit, fill, reset, op, oplist, invFormat, invHex, invVal
 } CMD_FUNC;
@@ -57,20 +57,20 @@ typedef struct {
     bool arg;
 } COMMAND;
 
-// user input command parse structure
+// user input command parsed structure
 typedef struct {
     CMD_FUNC cmd;
     short argCnt;
     char arg[ARG_MAX][10];
 } INPUT_CMD;
 
-// history node
+// history node structure
 typedef struct HIST_STRUCT {
     char str[CMD_LEN];
     struct HIST_STRUCT* next;
 } HIST_NODE;
 
-// hash table bucket
+// hash table bucket structure
 typedef struct HASH_STRUCT {
     int codeVal;
     char code[3];
@@ -79,5 +79,5 @@ typedef struct HASH_STRUCT {
     struct HASH_STRUCT* next;
 } HASH_ENTRY;
 
-int hexToDec(char*); // function that checks for vaild hex value and return converted decimal value
+int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
