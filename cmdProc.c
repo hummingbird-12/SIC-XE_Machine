@@ -10,7 +10,7 @@
  * Student ID: 20161577                                          *
  *                                                               *
  * File name: cmdProc.c                                          *
- * File description: Tasks related to process input by user.     *
+ * File description: Tasks related to parse input by user.       *
  *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
