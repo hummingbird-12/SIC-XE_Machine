@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * 																 *
- * 					  Sogang University							 *
- *        Department of Computer Science and Engineering		 *
- *																 *
- * Subject name: System Programming								 *
- * Project title: [1] SIC/XE Machine - The Basics				 *
- *																 *
- * Author: Inho Kim												 *
- * Student ID: 20161577											 *
- *																 *
- * File name: memory.c											 *
- * File description: Tasks related to virtual memory handling.   *
- *																 *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+ *                                                               *
+ *                    Sogang University                          *
+ *         Department of Computer Science and Engineering        *
+ *                                                               *
+ * Subject name: System Programming                              *
+ * Project title: [1] SIC/XE Machine - The Basics                *
+ *                                                               *
+ * Author: Inho Kim                                              *
+ * Student ID: 20161577                                          *
+ *                                                               *
+ * File name: memory.c                                           *
+ * File description: Tasks related to virtual memory handing.    *
+ *                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "20161577.h"
 #include "memory.h"
