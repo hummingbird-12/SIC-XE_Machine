@@ -26,7 +26,7 @@
 #define CMD_LEN 257			// maximum length of input string
 #define CMD_CNT 11			// list of command formats
 #define ARG_MAX 3			// maximum argument count
-#define MEM_SIZE 1048576 	// 2^20 = 1MB
+#define MEM_SIZE 1048576	// 2^20 = 1MB
 #define HASH_SIZE 20		// hash table size
 
 typedef struct dirent ENTRY;		// for dir command
