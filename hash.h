@@ -1,17 +1,17 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * 																 *
- * 					  Sogang University							 *
- *        Department of Computer Science and Engineering		 *
- *																 *
- * Subject name: System Programming								 *
- * Project title: [1] SIC/XE Machine - The Basics				 *
- *																 *
- * Author: Inho Kim												 *
- * Student ID: 20161577											 *
- *																 *
+ *                                                               *
+ *                    Sogang University                          *
+ *         Department of Computer Science and Engineering        *
+ *                                                               *
+ * Subject name: System Programming                              *
+ * Project title: [1] SIC/XE Machine - The Basics                *
+ *                                                               *
+ * Author: Inho Kim                                              *
+ * Student ID: 20161577                                          *
+ *                                                               *
  * File name: hash.h                                             *
  * File description: Header file for hash table related tasks.   *
- *																 *
+ *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 HASH_ENTRY* hashTable[HASH_SIZE]; // hash table pointer array
