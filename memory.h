@@ -1,7 +1,7 @@
-short mem[MEM_SIZE]; // virtual memory (1MB)
+short mem[MEM_SIZE]; 		// virtual memory (1MB)
 
-void dumpCMD(USR_CMD); // COMMAND: dump
-void editCMD(USR_CMD); // COMMAND: edit
-void fillCMD(USR_CMD); // COMMAND: fill
-void resetCMD();	   // COMMAND: reset
+void dumpCMD(INPUT_CMD); 	// COMMAND: dump
+void editCMD(INPUT_CMD); 	// COMMAND: edit
+void fillCMD(INPUT_CMD); 	// COMMAND: fill
+void resetCMD();	   		// COMMAND: reset
 

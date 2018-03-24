@@ -8,10 +8,10 @@ int main() {
 	char inp[CMD_LEN]; // input string
 	char tmp[CMD_LEN]; // temporary string to copy input
 	int i, j;
-	USR_CMD cmdExec;
+	INPUT_CMD input;
 
 	resetCMD(); // initialize memory
-	hash_create(); // create hash table of opcodes
+	hashCreate(); // create hash table of opcodes
 
 	while(1) {
 		printf("sicsim> ");
@@ -30,12 +30,12 @@ int main() {
 		}
 		tmp[j] = '\0';
 
-		cmdExec = findCMD(tmp); // find the command format from input string
-		if(cmdExec.cmd < invFormat)
-			hist_add(inp); // if command is not invalid add to history
+		input = findCMD(tmp); // find the command format from input string
+		if(input.cmd < invFormat)
+			histAdd(inp); // if command is not invalid add to history
 
 		// call function for each command
-		switch(cmdExec.cmd) {
+		switch(input.cmd) {
 			case help:
 				helpCMD();
 				break;
@@ -49,19 +49,19 @@ int main() {
 				histCMD();
 				break;
 			case dump:
-				dumpCMD(cmdExec);
+				dumpCMD(input);
 				break;
 			case edit:
-				editCMD(cmdExec);
+				editCMD(input);
 				break;
 			case fill:
-				fillCMD(cmdExec);
+				fillCMD(input);
 				break;
 			case reset:
 				resetCMD();
 				break;
 			case op:
-				opCMD(cmdExec);
+				opCMD(input);
 				break;
 			case oplist:
 				oplistCMD();

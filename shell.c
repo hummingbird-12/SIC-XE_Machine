@@ -1,7 +1,7 @@
 #include "main.h"
 #include "shell.h"
 
-HIST_NODE* hist_head = NULL; // head of history linked list
+HIST_NODE* histHead = NULL; // head of history linked list
 
 void helpCMD() {
 	printf("h[elp]\n"
@@ -18,7 +18,7 @@ void helpCMD() {
 
 void dirCMD() {
 	DIR* dir = opendir("."); // current directory
-	char* e_str;
+	char* entStr;
 	char path[258] = "./"; // entry path string
 	ENTRY* ent; // entry
 	STBUF buf; // stat
@@ -30,9 +30,9 @@ void dirCMD() {
 	ent = readdir(dir); // read entry
 	while(ent) {
 		path[2] = '\0'; // clear path string
-		e_str = ent->d_name; // entry name
-		stat(strcat(path, e_str), &buf);
-		printf("%-s", e_str); // print entry name
+		entStr = ent->d_name; // entry name
+		stat(strcat(path, entStr), &buf);
+		printf("%-s", entStr); // print entry name
 
 		if(S_ISDIR(buf.st_mode)) // check for directory
 			printf("/");
@@ -49,13 +49,13 @@ void dirCMD() {
 
 void quitCMD() {
 	puts("Exiting SIC...");
-	hist_free(); // free history linked list
-	hash_free(); // free hash table
+	histFree(); // free history linked list
+	hashFree(); // free hash table
 	exit(0);
 }
 
 void histCMD() {
-	HIST_NODE* cur = hist_head;
+	HIST_NODE* cur = histHead;
 	int cnt = 1;
 
 	while(cur) {
@@ -66,28 +66,28 @@ void histCMD() {
 }
 
 
-void hist_add(char* str) {
-	HIST_NODE* cur = hist_head;
-	HIST_NODE* new_hist = malloc(sizeof(HIST_NODE));
-	strcpy(new_hist->str, str);
-	new_hist->next = NULL;
+void histAdd(char* str) {
+	HIST_NODE* cur = histHead;
+	HIST_NODE* newHist = malloc(sizeof(HIST_NODE));
+	strcpy(newHist->str, str);
+	newHist->next = NULL;
 
-	if(!hist_head) { // if history linked list is empty
-		hist_head = new_hist;
+	if(!histHead) { // if history linked list is empty
+		histHead = newHist;
 		return;
 	}
 	while(cur->next)
 		cur = cur->next;
-	cur->next = new_hist;
+	cur->next = newHist;
 }
 
-void hist_free() {
-	HIST_NODE* cur = hist_head;
+void histFree() {
+	HIST_NODE* cur = histHead;
 	HIST_NODE* nex;
 	while(cur) {
 		nex = cur->next;
 		free(cur);
 		cur = nex;
 	}
-	hist_head = NULL;
+	histHead = NULL;
 }

@@ -20,7 +20,7 @@ typedef enum { false, true } bool;	// workaround for bool type in C
 // error codes
 typedef enum { 
 	SAFE, FORMAT, HEX, VALUE
-} ER_CODE;
+} ERROR_CODE;
 
 // command types
 typedef enum {
@@ -44,24 +44,24 @@ typedef struct {
 // user input command parse structure
 typedef struct {
 	CMD_FUNC cmd;
-	short arg_cnt;
+	short argCnt;
 	char arg[ARG_MAX][10];
-} USR_CMD;
+} INPUT_CMD;
 
 // history node
-typedef struct hist_struct {
+typedef struct HIST_STRUCT {
 	char str[CMD_LEN];
-	struct hist_struct* next;
+	struct HIST_STRUCT* next;
 } HIST_NODE;
 
 // hash table bucket
-typedef struct hash_struct {
+typedef struct HASH_STRUCT {
 	int codeVal;
 	char code[3];
 	char inst[CMD_LEN];
 	enum { m1, m2, m34 } mode;
-	struct hash_struct* next;
+	struct HASH_STRUCT* next;
 } HASH_ENTRY;
 
 int hexToDec(char*); // function that checks for vaild hex value and return converted decimal value
-void hash_free();	 // function to free hash table memory allocation
+void hashFree();	 // function to free hash table memory allocation

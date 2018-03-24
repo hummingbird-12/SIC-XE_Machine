@@ -1,7 +1,7 @@
 #include "main.h"
 #include "memory.h"
 
-void dumpCMD(USR_CMD uscmd) {
+void dumpCMD(INPUT_CMD ipcmd) {
 	static int start = 0;
 	int end, i, j;
 
@@ -9,15 +9,14 @@ void dumpCMD(USR_CMD uscmd) {
 		start = 0; // if start address exceeded memory limit, reset to 0x00000
 	end = start + 159; // set initial end value
 	
-	if(uscmd.arg_cnt) { // if there was argument entered in command
-		start = hexToDec(uscmd.arg[0]);
+	if(ipcmd.argCnt) { // if there was argument entered in command
+		start = hexToDec(ipcmd.arg[0]);
 		end = start + 159;
-		if(uscmd.arg_cnt == 2) // if there was 2 arguments
-			end = hexToDec(uscmd.arg[1]);
+		if(ipcmd.argCnt == 2) // if there was 2 arguments
+			end = hexToDec(ipcmd.arg[1]);
 	}
 	if(end >= MEM_SIZE)
 		end = MEM_SIZE - 1; // if end address exceed memory limit, set to 0xFFFFF
-
 
 	// start loop from the beginning of each 16 Bytes
 	// finish loop till end of each 16 Bytes
@@ -39,18 +38,18 @@ void dumpCMD(USR_CMD uscmd) {
 	start = end + 1; // remember last print address
 }
 
-void editCMD(USR_CMD uscmd) {
+void editCMD(INPUT_CMD ipcmd) {
 	int add, val;
-	add = hexToDec(uscmd.arg[0]); // address to edit
-	val = hexToDec(uscmd.arg[1]); // replace value
+	add = hexToDec(ipcmd.arg[0]); // address to edit
+	val = hexToDec(ipcmd.arg[1]); // replace value
 	mem[add] = val;
 }
 
-void fillCMD(USR_CMD uscmd) {
+void fillCMD(INPUT_CMD ipcmd) {
 	int i, start, end, val;
-	start = hexToDec(uscmd.arg[0]); // fill start address
-	end = hexToDec(uscmd.arg[1]);   // fill end address
-	val = hexToDec(uscmd.arg[2]);   // fill value
+	start = hexToDec(ipcmd.arg[0]); // fill start address
+	end = hexToDec(ipcmd.arg[1]);   // fill end address
+	val = hexToDec(ipcmd.arg[2]);   // fill value
 	for(i = start; i <= end; i++)
 		mem[i] = val;
 }

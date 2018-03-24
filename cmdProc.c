@@ -12,33 +12,33 @@ COMMAND cmdList[CMD_CNT] = {
 
 };
 
-USR_CMD findCMD(char* str) {
+INPUT_CMD findCMD(char* str) {
 	int i, j;
 	char delim[] = " \t\n"; // characters used to tokenize
 	char inp[CMD_LEN];
 	char* tok;
-	USR_CMD u_cmd;
+	INPUT_CMD ipcmd;
 
 	strcpy(inp, str); // copy input string
 
 	// initialize as invalid
-	u_cmd.cmd = invFormat;
-	u_cmd.arg_cnt = 0;
+	ipcmd.cmd = invFormat;
+	ipcmd.argCnt = 0;
 	
 	if(!strlen(str))
-		return u_cmd; // if empty string, return as invalid
+		return ipcmd; // if empty string, return as invalid
 
 	tok = strtok(inp, delim); // first word of input
 	if(!tok)
-		return u_cmd; // emtpy token
+		return ipcmd; // emtpy token
 	for(i = 0; i < CMD_CNT - 1; i++)
 		if(!strcmp(tok, cmdList[i].str) || !strcmp(tok, cmdList[i].abb)) {
-			u_cmd.cmd = cmdList[i].func; // if input command matches one of hard coded commands
+			ipcmd.cmd = cmdList[i].func; // if input command matches one of hard coded commands
 			break;
 		}
 
-	if(u_cmd.cmd == invFormat) // invalid command
-		return u_cmd;
+	if(ipcmd.cmd == invFormat) // invalid command
+		return ipcmd;
 
 	// get arguments
 	j = 0;
@@ -47,44 +47,44 @@ USR_CMD findCMD(char* str) {
 		if(!j && !tok) // no argument for command 
 			break;
 		if((j && !tok) || tok[0] == ',') { // there was a previous argument but empty token or comma found
-			u_cmd.cmd = invFormat; //invalid command
-			return u_cmd;
+			ipcmd.cmd = invFormat; //invalid command
+			return ipcmd;
 		}
-		strcpy(u_cmd.arg[j++], tok); // copy argument to input command structure
+		strcpy(ipcmd.arg[j++], tok); // copy argument to input command structure
 		tok = strtok(NULL, delim); // next token (expected a comma if valid command)
 		if(tok && tok[0] != ',') { // if token not empty, expected a comma
-			u_cmd.cmd = invFormat;
-			return u_cmd;
+			ipcmd.cmd = invFormat;
+			return ipcmd;
 		}
 	}
-	u_cmd.arg_cnt = j; // save argument count
+	ipcmd.argCnt = j; // save argument count
 
 	// after input string parsed, do further check for validity
-	switch(testValidInput(u_cmd, cmdList[i])) { // get error type, if any
+	switch(testValidInput(ipcmd, cmdList[i])) { // get error type, if any
 		case FORMAT:
-			u_cmd.cmd = invFormat;
+			ipcmd.cmd = invFormat;
 			break;
 		case HEX:
-			u_cmd.cmd = invHex;
+			ipcmd.cmd = invHex;
 			break;
 		case VALUE:
-			u_cmd.cmd = invVal;
+			ipcmd.cmd = invVal;
 			break;
 		default: // no error found
 			break;
 	}
-	return u_cmd;
+	return ipcmd;
 }
 
-ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
+ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
 	int i;
 	int arg[3];
-	ER_CODE code = SAFE; // initialize as correct command
-	if(usr_cmd.cmd == invFormat)
+	ERROR_CODE code = SAFE; // initialize as correct command
+	if(ipcmd.cmd == invFormat)
 		return FORMAT;
 
 	// check argument count
-	switch(usr_cmd.cmd) {
+	switch(ipcmd.cmd) {
 		// strictly 0 arguments
 		case help:
 		case dir:
@@ -92,27 +92,27 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 		case hist:
 		case reset:
 		case oplist:
-			if(usr_cmd.arg_cnt)
+			if(ipcmd.argCnt)
 				code = FORMAT;
 			break;
 		// strictly 1 argument
 		case op:
-			if(usr_cmd.arg_cnt != 1)
+			if(ipcmd.argCnt != 1)
 				code = FORMAT;
 			break;
 		// strictly 2 arguments
 		case edit:
-			if(usr_cmd.arg_cnt != 2)
+			if(ipcmd.argCnt != 2)
 				code = FORMAT;
 			break;
 		// strictly 3 arguments
 		case fill:
-			if(usr_cmd.arg_cnt != 3)
+			if(ipcmd.argCnt != 3)
 				code = FORMAT;
 			break;
 		// need less than 3
 		case dump:
-			if(usr_cmd.arg_cnt > 2)
+			if(ipcmd.argCnt > 2)
 				code = FORMAT;
 			break;
 		default:
@@ -123,11 +123,11 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 
 	// check hexadecimal number if command is memory-related
 	if(format.type == memory) {
-		for(i = 0; i < usr_cmd.arg_cnt; i++)
-			if((arg[i] = hexToDec(usr_cmd.arg[i])) == -1)
+		for(i = 0; i < ipcmd.argCnt; i++)
+			if((arg[i] = hexToDec(ipcmd.arg[i])) == -1)
 				code = HEX;
 		// check with each command's criteria
-		switch(usr_cmd.cmd) {
+		switch(ipcmd.cmd) {
 			case edit:
 				if(arg[0] >= MEM_SIZE || arg[1] > 255)
 					code = VALUE;
@@ -137,7 +137,7 @@ ER_CODE testValidInput(USR_CMD usr_cmd, COMMAND format) {
 					code = VALUE;
 				break;
 			case dump:
-				switch(usr_cmd.arg_cnt) {
+				switch(ipcmd.argCnt) {
 					case 2:
 						if(arg[1] >= MEM_SIZE || arg[0] > arg[1])
 							code = VALUE;
