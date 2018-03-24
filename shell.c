@@ -9,8 +9,8 @@
  * Author: Inho Kim												 *
  * Student ID: 20161577											 *
  *																 *
- * File name: shell.c											 *
- * File description: Tasks processed in shell environment.		 *
+ * File name: shell.c                                            *
+ * File description: Tasks processed in shell environment.       *
  *																 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -9,8 +9,8 @@
  * Author: Inho Kim												 *
  * Student ID: 20161577											 *
  *																 *
- * File name: memory.h											 *
- * File description: Header file for memory related tasks.		 *
+ * File name: memory.h                                           *
+ * File description: Header file for memory related tasks.       *
  *																 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

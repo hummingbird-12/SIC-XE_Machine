@@ -9,8 +9,8 @@
  * Author: Inho Kim												 *
  * Student ID: 20161577											 *
  *																 *
- * File name: hash.h											 *
- * File description: Header file for hash table related tasks.	 *
+ * File name: hash.h                                             *
+ * File description: Header file for hash table related tasks.   *
  *																 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

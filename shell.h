@@ -9,8 +9,8 @@
  * Author: Inho Kim												 *
  * Student ID: 20161577											 *
  *																 *
- * File name: shell.h											 *
- * File description: Header file for shell related tasks.		 *
+ * File name: shell.h                                            *
+ * File description: Header file for shell related tasks.        *
  *																 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

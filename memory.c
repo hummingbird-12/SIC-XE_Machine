@@ -10,9 +10,9 @@
  * Student ID: 20161577											 *
  *																 *
  * File name: memory.c											 *
- * File description: Tasks related to virtual memory handling.	 *
+ * File description: Tasks related to virtual memory handling.   *
  *																 *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 #include "20161577.h"
 #include "memory.h"
