@@ -1,6 +1,6 @@
 20161577.out: main.o cmdProc.o shell.o memory.o hash.o
 	gcc -Wall -o 20161577.out main.o cmdProc.o shell.o memory.o hash.o
-	@echo "\n>>> To execute, type ./20161577.out"
+	@echo "\n>>> To execute, type ./20161577.out\n"
 
 main.o: 20161577.h 20161577.c
 	gcc -Wall -c -o main.o 20161577.c
