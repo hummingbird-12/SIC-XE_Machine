@@ -1,0 +1,55 @@
+< Proj1_SIC_Shell >
+
+0. How to execute program
+
+* After unzipping, there should be:
+- 5 *.h header files        (20161577.h, cmdProc.h, shell.h, memory.h, hash.h)
+- 5 *.c source code files   (20161577.c, cmdProc.c, shell.c, memory.c, hash.c)
+- opcode.txt
+- Makefile
+- README
+
+* Then, type the following to execute program:
+$ make
+$ ./20161577.out
+
+* To cleanup directory after execution, type:
+$ make clean
+
+
+1. Description
+
+This is the first project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
+It is a simple shell system made with C. You may play around with different commands available, have a look at how memory is managed by a system and learn about simple opcodes.
+
+
+2. Specification
+
+- Allocated virtual memory: 1 MB
+
+
+3. Allowed Commands
+
+- h[elp]                    : show list and format of commands.
+- d[ir]                     : show list of entries in current directory.
+- q[uit]                    : exit system.
+- hi[story]                 : show list of valid commands entered during current session.
+- du[mp] [start, end]       : print content of virtual memory.
+- e[dit] address, value     : change value at designated memory address.
+- f[ill] start, end, value  : batch fill an interval in address with a value.
+- reset                     : set whole memory to 0x00.
+- opcode mnemonic           : lookup for the code of the opcode mnemonic.
+- opcodelist                : show opcode list stored in hash table.
+
+
+4. Other information
+
+This system will further be improved with more features such as assembler, etc.
+
+
+5. About the Developer
+
+Inho Kim, 20161577,
+Undergraduate student of Dept. of Computer Science and Engineering,
+Sogang University,
+Seoul, South Korea
