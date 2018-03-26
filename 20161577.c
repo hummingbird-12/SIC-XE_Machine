@@ -21,10 +21,10 @@
 #include "hash.h"
 
 int main() {
-    char inp[CMD_LEN]; // input string
-    char tmp[CMD_LEN]; // temporary string to copy input
+    char inp[CMD_LEN];  // input string
+    char tmp[CMD_LEN];  // temporary string to copy input
     int i, j;
-    INPUT_CMD input;
+    INPUT_CMD input;    // storage for parsed input
 
     resetCMD(); // initialize memory
     hashCreate(); // create hash table of opcodes
