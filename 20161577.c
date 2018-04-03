@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "hash.h"
 
+void assembleCMD();
+void symbolCMD();
+
 int main() {
     char inp[CMD_LEN];  // input string
     char tmp[CMD_LEN];  // temporary string to copy input
@@ -82,6 +85,15 @@ int main() {
             case oplist:
                 oplistCMD();
                 break;
+            case type:
+                typeCMD();
+                break;
+            case assemble:
+                assembleCMD();
+                break;
+            case symbol:
+                symbolCMD();
+                break;
             case invFormat:
                 invFormatCMD();
                 break;
@@ -94,4 +106,12 @@ int main() {
         }
     }
     return 0;
+}
+
+void assembleCMD() {
+
+}
+
+void symbolCMD() {
+
 }

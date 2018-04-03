@@ -18,6 +18,7 @@ void helpCMD(); // COMMAND: help
 void dirCMD();  // COMMAND: dir
 void quitCMD(); // COMMAND: quit
 void histCMD(); // COMMAND: history
+void typeCMD(); // COMMAND: type
 
 void histAdd(char*);    // function to add input command into history
 void histFree();        // function to free history linked list

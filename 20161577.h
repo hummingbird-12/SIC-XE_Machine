@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 
 #define CMD_LEN 257         // maximum length of input string
-#define CMD_CNT 11          // list of command formats
+#define CMD_CNT 14          // list of command formats
 #define ARG_MAX 3           // maximum argument count
 #define MEM_SIZE 1048576    // 2^20 = 1MB
 #define HASH_SIZE 20        // hash table size
@@ -40,19 +40,19 @@ typedef enum {
 
 // command types, for better readability
 typedef enum {
-    shell, memory, opcode, invalid
+    shell, memory, opcode, assembler, invalid
 } CMD_TYPE;
 
 // command functions, for better readablitiy
 typedef enum {
-    help, dir, quit, hist, dump, edit, fill, reset, op, oplist, invFormat, invHex, invVal
+    help, dir, quit, hist, dump, edit, fill, reset, op, oplist, type, assemble, symbol, invFormat, invHex, invVal
 } CMD_FUNC;
 
 // command format structure
 typedef struct {
     char str[CMD_LEN];
     char abb[CMD_LEN];
-    CMD_TYPE type;
+    CMD_TYPE category;
     CMD_FUNC func;
     bool arg;
 } COMMAND;

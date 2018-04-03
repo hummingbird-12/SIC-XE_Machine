@@ -84,6 +84,9 @@ void histCMD() {
     }
 }
 
+void typeCMD() {
+
+}
 
 void histAdd(char* str) {
     HIST_NODE* cur = histHead;

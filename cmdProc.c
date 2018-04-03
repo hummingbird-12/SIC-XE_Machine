@@ -19,13 +19,13 @@
 
 // store command format in structure array to compare
 COMMAND cmdList[CMD_CNT] = {
-    { "help", "h", shell, help, false  }, { "dir", "d", shell, dir, false  },
-    { "quit", "q", shell, quit, false  }, { "history", "hi", shell, hist, false  },
-    { "dump", "du", memory, dump, true  }, { "edit", "e", memory, edit, true  },
-    { "fill", "f", memory, fill, true  }, { "reset", "reset", memory, reset, false  },
-    { "opcode", "opcode", opcode, op, true  }, { "opcodelist", "opcodelist", opcode, oplist, false },
-    { "invalid", "invalid", invalid, invFormat, true  }
-
+    { "help", "h", shell, help, false }, { "dir", "d", shell, dir, false },
+    { "quit", "q", shell, quit, false }, { "history", "hi", shell, hist, false },
+    { "dump", "du", memory, dump, true }, { "edit", "e", memory, edit, true },
+    { "fill", "f", memory, fill, true }, { "reset", "reset", memory, reset, false },
+    { "opcode", "opcode", opcode, op, true }, { "opcodelist", "opcodelist", opcode, oplist, false },
+    { "type", "type", shell, type, true }, { "assemble", "assemble", assembler, assemble, true },
+    { "symbol", "symbol", assembler, symbol, false }, { "invalid", "invalid", invalid, invFormat, true }
 };
 
 INPUT_CMD findCMD(char* str) {
@@ -138,7 +138,7 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
         return code;
 
     // check hexadecimal number if command is memory-related
-    if(format.type == memory) {
+    if(format.category == memory) {
         for(i = 0; i < ipcmd.argCnt; i++)
             if((arg[i] = hexToDec(ipcmd.arg[i])) == -1)
                 code = HEX;
