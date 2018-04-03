@@ -29,7 +29,10 @@ void helpCMD() {
             "f[ill] start, end, value\n"
             "reset\n"
             "opcode mnemonic\n"
-            "opcodelist\n");
+            "opcodelist\n"
+            "assemble filename\n"
+            "type filename\n"
+            "symbol\n");
 }
 
 void dirCMD() {
