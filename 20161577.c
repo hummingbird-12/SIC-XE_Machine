@@ -103,6 +103,9 @@ int main() {
             case invVal:
                 invValCMD();
                 break;
+            case invFile:
+                invFileCMD();
+                break;
         }
     }
     return 0;

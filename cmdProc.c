@@ -86,6 +86,9 @@ INPUT_CMD findCMD(char* str) {
         case VALUE:
             ipcmd.cmd = invVal;
             break;
+        case FILENAME:
+            ipcmd.cmd = invFile;
+            break;
         default: // no error found
             break;
     }
@@ -170,6 +173,11 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
                 break;
         }
     }
+    else if(format.category == assembler) {
+        if(ipcmd.cmd == assemble)
+            if(strcmp(ipcmd.arg[0] + strlen(ipcmd.arg[0]) - 4, ".asm"))
+                code = FILENAME;
+    }
     return code;
 }
 
@@ -186,6 +194,11 @@ void invValCMD() {
     puts("ERROR: Invalid address.");
     puts("Memory size:\t\t1MB [0x00000 ~ 0xFFFFF]");
     puts("Edit/Fill value range:\t 1B [0x00 ~ 0xFF]");
+}
+
+void invFileCMD() {
+    puts("ERROR: Invalid filename.");
+    puts("Assembly source file extension must be .asm");
 }
 
 int hexToDec(char* hex) {

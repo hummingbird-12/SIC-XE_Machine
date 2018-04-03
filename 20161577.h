@@ -35,7 +35,7 @@ typedef enum { false, true } bool;  // workaround for bool type in C
 
 // error codes, for better readability
 typedef enum { 
-    SAFE, FORMAT, HEX, VALUE
+    SAFE, FORMAT, HEX, VALUE, FILENAME
 } ERROR_CODE;
 
 // command types, for better readability
@@ -45,7 +45,7 @@ typedef enum {
 
 // command functions, for better readablitiy
 typedef enum {
-    help, dir, quit, hist, dump, edit, fill, reset, op, oplist, type, assemble, symbol, invFormat, invHex, invVal
+    help, dir, quit, hist, dump, edit, fill, reset, op, oplist, type, assemble, symbol, invFormat, invHex, invVal, invFile
 } CMD_FUNC;
 
 // command format structure

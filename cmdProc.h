@@ -20,3 +20,4 @@ ERROR_CODE testValidInput(INPUT_CMD, COMMAND);  // function to check validity of
 void invFormatCMD();    // called when invalid format input
 void invHexCMD();       // called when invalid hexadecimal value
 void invValCMD();       // called when invalid value
+void invFileCMD();      // called when invalid filename
