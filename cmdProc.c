@@ -108,11 +108,14 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
         case hist:
         case reset:
         case oplist:
+        case symbol:
             if(ipcmd.argCnt)
                 code = FORMAT;
             break;
         // strictly 1 argument
         case op:
+        case type:
+        case assemble:
             if(ipcmd.argCnt != 1)
                 code = FORMAT;
             break;
