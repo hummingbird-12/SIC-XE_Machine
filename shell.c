@@ -86,18 +86,14 @@ void histCMD() {
 
 void typeCMD(INPUT_CMD ipcmd) {
     FILE* fp = fopen(ipcmd.arg[0], "r");
-    char c, tmp;
+    char c;
 
     if(!fp) {
         puts("ERROR: file not found.");
         return;
     }
-    while((c = fgetc(fp)) != EOF) {
+    while((c = fgetc(fp)) != EOF)
         putchar(c);
-        tmp = c;
-    }
-    if(tmp != '\n')
-        puts("");
 
     if(fclose(fp))
         puts("WARNING: Error closing file.");
