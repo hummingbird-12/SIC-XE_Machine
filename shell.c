@@ -90,7 +90,7 @@ void typeCMD() {
 
 void histAdd(char* str) {
     HIST_NODE* cur = histHead;
-    HIST_NODE* newHist = malloc(sizeof(HIST_NODE));
+    HIST_NODE* newHist = (HIST_NODE*) malloc(sizeof(HIST_NODE));
     strcpy(newHist->str, str);
     newHist->next = NULL;
 

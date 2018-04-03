@@ -57,7 +57,7 @@ void hashCreate() {
     }
 
     while(fscanf(fp, "%s %s %s", cd, ins, md) == 3) {
-        bucket = malloc(sizeof(HASH_ENTRY));
+        bucket = (HASH_ENTRY*) malloc(sizeof(HASH_ENTRY));
         strcpy(bucket->code, cd);
         strcpy(bucket->inst, ins);
         bucket->codeVal = hexToDec(cd);
