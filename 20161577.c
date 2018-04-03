@@ -86,7 +86,7 @@ int main() {
                 oplistCMD();
                 break;
             case type:
-                typeCMD();
+                typeCMD(input);
                 break;
             case assemble:
                 assembleCMD();
