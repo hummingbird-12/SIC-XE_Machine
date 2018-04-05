@@ -61,15 +61,41 @@ void hashCreate() {
         strcpy(bucket->code, cd);
         strcpy(bucket->inst, ins);
         bucket->codeVal = hexToDec(cd);
-        bucket->mode = md[0] - '1';
+        bucket->format = md[0] - '1';
+        checkOperandCnt(bucket);
         bucket->next = NULL;
-        
+
         hashAddBucket(hashFunction(bucket->inst), bucket);
     }
 
     if(fclose(fp)) {
         puts("WARNING: Error closing \"opcode.txt\".");
         return;
+    }
+}
+
+void checkOperandCnt(HASH_ENTRY* bucket) {
+    int i;
+    switch(bucket->format) {
+        case f1: // Format 1 instruction
+            bucket->operandCnt = 0;
+            break;
+        case f2: // Format 2 instruction
+            bucket->operandCnt = 2; // Default is 2 operands
+            for(i = 0; i < 3; i++) // Exception check
+                if(!strcmp(bucket->inst, exceptionFmt2[i])) {
+                    bucket->operandCnt = 1;
+                    break;
+                }
+            break;
+        case f34: // Format 3 or 4 instruction
+            bucket->operandCnt = 1; // Default is 1 operand
+            for(i = 0; i < 1; i++) // Exception check
+                if(!strcmp(bucket->inst, exceptionFmt3[i])) {
+                    bucket->operandCnt = 0;
+                    break;
+                }
+            break;
     }
 }
 

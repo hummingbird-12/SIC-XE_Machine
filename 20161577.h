@@ -28,6 +28,7 @@
 #define ARG_MAX 3           // maximum argument count
 #define MEM_SIZE 1048576    // 2^20 = 1MB
 #define HASH_SIZE 20        // hash table size
+#define ASM_LEN 31          // maximum length of single asm source line
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
@@ -75,9 +76,24 @@ typedef struct HASH_STRUCT {
     int codeVal;
     char code[3];
     char inst[CMD_LEN];
-    enum { m1, m2, m34 } mode;
+    enum { f1, f2, f34 } format;
+    int operandCnt;
     struct HASH_STRUCT* next;
 } HASH_ENTRY;
+
+typedef struct {
+    char sym[ASM_LEN];
+    char inst[ASM_LEN];
+    char arg[2][ASM_LEN];
+    int address;
+} ASM_SRC;
+
+// symbol table entry structure
+typedef struct SYMBOL_STRUCT {
+    char sym[ASM_LEN];
+    int address;
+    struct SYMBOL_STRUCT* next;
+} SYMBOL_ENTRY;
 
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
