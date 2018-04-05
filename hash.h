@@ -24,3 +24,4 @@ void oplistCMD();       // COMMAND: opcodelist
 void hashCreate();                      // function to create hash table
 void checkOperandCnt(HASH_ENTRY*);
 void hashAddBucket(int, HASH_ENTRY*);   // function to add bucket to hash table
+int hashFunction(char*);                // function that returns hash function
