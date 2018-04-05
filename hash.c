@@ -17,11 +17,21 @@
 #include "20161577.h"
 #include "hash.h"
 
+// Format 2 instruction but 1 operand
+char exceptionFmt2[][OPCODE_LEN] = {
+    "CLEAR",
+    "SVC",
+    "TIXR"
+
+};
+// Format 3 instruction but NO operand
+char exceptionFmt3[][OPCODE_LEN] = {
+    "RSUB"
+};
+
 void opCMD(INPUT_CMD ipcmd) {
-    HASH_ENTRY* bucket;
-    bucket = hashTable[hashFunction(ipcmd.arg[0])]; // get front bucket from hash function
-    while(bucket && strcmp(bucket->inst, ipcmd.arg[0])) // search till match or end
-        bucket = bucket->next;
+    HASH_ENTRY* bucket = bucketFound(ipcmd.arg[0]);
+
     if(bucket) // target found!
         printf("opcode is %s\n", bucket->code);
     else { // target NOT found..
@@ -128,4 +138,13 @@ void hashFree() {
         }
         hashTable[i] = NULL; // reset pointer to NULL
     }
+}
+
+HASH_ENTRY* bucketFound(char* inst) {
+    HASH_ENTRY* bucket;
+
+    bucket = hashTable[hashFunction(inst)]; // get front bucket from hash function
+    while(bucket && strcmp(bucket->inst, inst)) // search till match or end
+        bucket = bucket->next;
+    return bucket;
 }

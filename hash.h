@@ -17,16 +17,6 @@
 #define OPCODE_LEN 7
 
 HASH_ENTRY* hashTable[HASH_SIZE]; // hash table pointer array
-// Format 2 instruction but 1 operand
-char exceptionFmt2[][OPCODE_LEN] = {
-    "CLEAR",
-    "SVC",
-    "TIXR"
-};
-// Format 3 instruction but NO operand
-char exceptionFmt3[][OPCODE_LEN] = {
-    "RSUB"
-};
 
 void opCMD(INPUT_CMD);  // COMMAND: opcode
 void oplistCMD();       // COMMAND: opcodelist
@@ -35,3 +25,4 @@ void hashCreate();                      // function to create hash table
 void checkOperandCnt(HASH_ENTRY*);
 int hashFunction(char*);                // function that returns hash function
 void hashAddBucket(int, HASH_ENTRY*);   // function to add bucket to hash table
+HASH_ENTRY* bucketFound(char*);                // function to search bucket
