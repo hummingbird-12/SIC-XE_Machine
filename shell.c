@@ -89,7 +89,7 @@ void typeCMD(INPUT_CMD ipcmd) {
     char c;
 
     if(!fp) {
-        puts("ERROR: file not found.");
+        puts("ERROR: File not found.");
         return;
     }
     while((c = fgetc(fp)) != EOF)

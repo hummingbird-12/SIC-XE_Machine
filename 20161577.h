@@ -82,18 +82,21 @@ typedef struct HASH_STRUCT {
 } HASH_ENTRY;
 
 typedef struct {
-    char sym[ASM_LEN];
+    char label[ASM_LEN];
     char inst[ASM_LEN];
-    char arg[2][ASM_LEN];
-    int address;
+    char operand[2][ASM_LEN];
+    int operandCnt;
+    int location;
 } ASM_SRC;
 
 // symbol table entry structure
 typedef struct SYMBOL_STRUCT {
-    char sym[ASM_LEN];
+    char symbol[ASM_LEN];
     int address;
     struct SYMBOL_STRUCT* next;
 } SYMBOL_ENTRY;
 
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
+
+HASH_ENTRY* bucketFound(char*);                // function to search bucket

@@ -20,8 +20,13 @@
 #include "memory.h"
 #include "hash.h"
 
-void assembleCMD();
+SYMBOL_ENTRY* symTable;
+
+void assembleCMD(INPUT_CMD);
+ASM_SRC* parseASM(char*);
 void symbolCMD();
+void symTableAdd(ASM_SRC);
+void symTableFree();
 
 int main() {
     char inp[CMD_LEN];  // input string
@@ -89,7 +94,7 @@ int main() {
                 typeCMD(input);
                 break;
             case assemble:
-                assembleCMD();
+                assembleCMD(input);
                 break;
             case symbol:
                 symbolCMD();
@@ -111,10 +116,115 @@ int main() {
     return 0;
 }
 
-void assembleCMD() {
+void assembleCMD(INPUT_CMD ipcmd) {
+    FILE* fp = fopen(ipcmd.arg[0], "r");
+    char source[ASM_LEN];
+    ASM_SRC* parsed = NULL;
 
+    if(!fp) {
+        puts("ERROR: File not found.");
+        return;
+    }
+    fgets(source, ASM_LEN, fp);
+    if((parsed = parseASM(source)) == NULL)
+        puts("HAHA");
+    else {
+        puts("GOOD!");
+        printf("%s\n", parsed->inst);
+    }
+    if(fclose(fp))
+        puts("WARNING: Error closing file.");
 }
 
 void symbolCMD() {
+}
 
+ASM_SRC* parseASM(char* source) {
+    char delim[] = " \t\n";
+    char tokens[5][ASM_LEN] = {'\0'};
+    char str[ASM_LEN] = {'\0'};
+    char *tok;
+    int i, j, tokCnt = 0;
+    ASM_SRC* parseResult = NULL;
+    HASH_ENTRY* bucket = NULL;
+
+    j = 0;
+    for(i = 0; source[i]; i++) {
+        if(source[i] == ',') {
+            strcpy(str + j, " , ");
+            j += 3;
+        }
+        else
+            str[j++] = source[i];
+    }
+
+    tok = strtok(str, delim);
+    if(!strcmp(tok, ".")) { // check for comment
+        parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
+        parseResult->label[0] = '.';
+        return parseResult;
+    }
+    while(tok) {
+        strcpy(tokens[tokCnt++], tok);
+        tok = strtok(NULL, delim);
+        if(tokCnt == 5)
+            break;
+    }
+    if(tok) // invalid field exists
+        return parseResult; // returns NULL pointer
+
+    parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
+    if((bucket = bucketFound(tokens[0]))) { // if first token is the instruction
+        strcpy(parseResult->inst, tokens[0]);
+        i = 1;
+    }
+    else if ((bucket = bucketFound(tokens[1]))) { // if second token is the instruction
+        strcpy(parseResult->label, tokens[0]);
+        strcpy(parseResult->inst, tokens[1]);
+        i = 2;
+    }
+    else if(!bucket) {
+        free(parseResult);
+        parseResult = NULL;
+        return parseResult;
+    }
+
+    for(j = 0; i + j < tokCnt; j++) {
+        strcpy(parseResult->operand[j], tokens[i + j]);
+        if(i + j + 1 < tokCnt && strcmp(tokens[i + j + 1], ",")) { // no comma in between operands
+            free(parseResult);
+            parseResult = NULL;
+            return parseResult;
+        }
+        j++;
+    }
+
+    return parseResult;
+}
+
+void symTableAdd(ASM_SRC source) {
+    SYMBOL_ENTRY* cur = symTable;
+    SYMBOL_ENTRY* newEntry = (SYMBOL_ENTRY*) malloc(sizeof(SYMBOL_ENTRY));
+    strcpy(newEntry->symbol, source.label);
+    newEntry->address = source.location;
+    newEntry->next = NULL;
+
+    if(!symTable) {
+        symTable = newEntry;
+        return;
+    }
+    while(cur->next)
+        cur = cur->next;
+    cur->next = newEntry;
+}
+
+void symTableFree() {
+    SYMBOL_ENTRY *cur, *next;
+    cur = symTable;
+    while(cur) {
+        next = cur->next;
+        free(cur);
+        cur = next;
+    }
+    symTable = NULL;
 }
