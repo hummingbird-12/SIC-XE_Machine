@@ -133,9 +133,13 @@ int main() {
 
 void assembleCMD(INPUT_CMD ipcmd) {
     FILE* fp = fopen(ipcmd.arg[0], "r");
+    FILE *lstFile, *objFile;
     char source[ASM_LEN];
+    char lstName[CMD_LEN], objName[CMD_LEN];
     ASM_SRC* parsed;
-    int location = 0;
+    int location = -1;
+    int lineNum = 5;
+    bool errorFlag = false;
 
     if(symTable) {
         symTableFree();
@@ -147,6 +151,112 @@ void assembleCMD(INPUT_CMD ipcmd) {
         return;
     }
 
+    strncpy(lstName, ipcmd.arg[0], strlen(ipcmd.arg[0]) - 3);
+    strcat(lstName, "lst");
+    strncpy(objName, ipcmd.arg[0], strlen(ipcmd.arg[0]) - 3);
+    strcat(objName, "obj");
+
+    //lstFile = fopen(lstName, "w");
+    //objFile = fopen(objName, "w");
+
+    if(!lstFile || !objFile) {
+        //puts("ERROR: Problem while creating .list and .obj files.");
+        if(lstFile) fclose(lstFile);
+        if(objFile) fclose(objFile);
+        //return;
+    }
+
+    while(fgets(source, ASM_LEN, fp) != NULL) {
+        parsed = parseASM(source);
+        if(!strcmp(parsed->inst, "START")) {
+            location = hexToDec(parsed->operand[0]);
+            parsed->location = location;
+        }
+        // no START directive, set start address as 0
+        if(location == -1) {
+            location = 0;
+            parsed->location = location;
+        }
+        printf("%5d\t", lineNum);
+        
+        switch(parsed->type) {
+            case ERROR:
+                errorFlag = true;
+                break;
+            case INST:
+                printf("%04X\t", location);
+                location += parsed->format;
+                break;
+            case PSEUDO:
+                switch(parsed->direcName) {
+                    case START:
+                        printf("%04X\t", location);
+                        break;
+                    case END:
+                    case BASE:
+                        printf("\t");
+                        break;
+                    case BYTE:
+                        printf("%04X\t", location);
+                        if(parsed->operand[0][0] == 'X')
+                            location += (strlen(parsed->operand[0]) - 3 + 1) / 2;
+                        else if(parsed->operand[0][0] == 'C')
+                            location += strlen(parsed->operand[0]) - 3;
+                        break;
+                    case WORD:
+                        printf("%04X\t", location);
+                        location += 3;
+                        break;
+                    case RESB:
+                        printf("%04X\t", location);
+                        location += atoi(parsed->operand[0]);
+                        break;
+                    case RESW:
+                        printf("%04X\t", location);
+                        location += atoi(parsed->operand[0]) * 3;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case COMMENT:
+                printf("\t");
+                break;
+            default:
+                break;
+        }
+        if(errorFlag)
+            break;
+
+        source[strlen(source) - 1] = '\0';
+        puts(source);
+        lineNum += 5;
+        if(!strcmp(parsed->inst, "END"))
+            break;
+    }
+
+    if(errorFlag) {
+        printf("ERROR: Invalid assembly source:\n");
+        printf("[Line %d] Error in ", lineNum);
+        switch(parsed->errorCode) {
+            case SYMBOL:
+                puts("symbol field.");
+                break;
+            case INSTRUCTION:
+                puts("instruction field.");
+                break;
+            case OPERAND:
+                puts("operand field.");
+                break;
+            default:
+                break;
+        }
+    }
+
+    //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
+        //puts("WARNING: Error closing file.");
+
+    /*
     printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
     printf("--------------------------------------------------------\n");
     while(fgets(source, ASM_LEN, fp) != NULL) {
@@ -174,8 +284,7 @@ void assembleCMD(INPUT_CMD ipcmd) {
         if(!strcmp(parsed->inst, "END"))
             break;
     }
-    if(fclose(fp))
-        puts("WARNING: Error closing file.");
+    */
 }
 
 void symbolCMD() {
@@ -198,7 +307,6 @@ ASM_SRC* parseASM(char* source) {
     int i, j;
     ASM_SRC* parseResult;
     HASH_ENTRY* bucket;
-    DIREC dir;
 
     parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
     parseResult->hasLabel = false;
@@ -234,6 +342,7 @@ ASM_SRC* parseASM(char* source) {
         if(!strcmp(tok, directives[i])) { // pseudo instruction found
             parseResult->type = PSEUDO;
             parseResult->format = NONE;
+            parseResult->direcName = i;
             strcpy(parseResult->inst, tok);
             break;
         }
@@ -266,6 +375,7 @@ ASM_SRC* parseASM(char* source) {
                 parseResult->type = PSEUDO;
                 strcpy(parseResult->inst, tok);
                 parseResult->format = NONE;
+                parseResult->direcName = i;
                 break;
             }
 

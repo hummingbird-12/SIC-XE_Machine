@@ -55,7 +55,7 @@ typedef enum {
 
 typedef enum {
     START, END, BASE, BYTE, WORD, RESB, RESW
-} DIREC;
+} DIREC_NAME;
 
 // command format structure
 typedef struct {
@@ -99,6 +99,7 @@ typedef struct {
     int operandCnt;
     enum { ERROR, INST, PSEUDO, COMMENT } type;
     enum { NONE, format1, format2, format3, format4 } format;
+    DIREC_NAME direcName;
     ASM_ERROR errorCode;
 } ASM_SRC;
     
