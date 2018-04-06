@@ -88,7 +88,7 @@ typedef struct {
     int location;
     enum { ERROR, inst, direc, comment } type;
     bool hasLabel;
-    enum { SAFE, SYMBOL, OPCODE, OPERAND } errorCode;
+    enum { OK, SYMBOL, OPCODE, OPERAND } errorCode;
 } ASM_SRC;
     
 // symbol table entry structure
