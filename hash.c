@@ -92,7 +92,7 @@ void checkOperandCnt(HASH_ENTRY* bucket) {
             break;
         case f2: // Format 2 instruction
             bucket->operandCnt = 2; // Default is 2 operands
-            for(i = 0; i < 3; i++) // Exception check
+            for(i = 0; i < 3; i++) // Exception check (CLEAR, SVC, TIXR)
                 if(!strcmp(bucket->inst, exceptionFmt2[i])) {
                     bucket->operandCnt = 1;
                     break;
@@ -100,7 +100,7 @@ void checkOperandCnt(HASH_ENTRY* bucket) {
             break;
         case f34: // Format 3 or 4 instruction
             bucket->operandCnt = 1; // Default is 1 operand
-            for(i = 0; i < 1; i++) // Exception check
+            for(i = 0; i < 1; i++) // Exception check (RSUB)
                 if(!strcmp(bucket->inst, exceptionFmt3[i])) {
                     bucket->operandCnt = 0;
                     break;
