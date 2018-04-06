@@ -132,6 +132,11 @@ void assembleCMD(INPUT_CMD ipcmd) {
     ASM_SRC* parsed;
     int location = 0;
 
+    if(symTable) {
+        symTableFree();
+        symTable = NULL;
+    }
+
     if(!fp) {
         puts("ERROR: File not found.");
         return;
