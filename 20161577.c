@@ -171,50 +171,18 @@ void assembleCMD(INPUT_CMD ipcmd) {
         if(!strcmp(parsed->inst, "END"))
             break;
     }
-    /*
-       char tmp[30];
-       switch(parsed->type) {
-       case ERROR:
-       strcpy(tmp, "ERROR");
-       switch(parsed->errorCode) {
-       case SYMBOL:
-       strcat(tmp, "(SYM)");
-       break;
-       case INSTRUCTION:
-       strcat(tmp, "(INST)");
-       break;
-       case OPERAND:
-       strcat(tmp, "(OPR)");
-       break;
-       default:
-       break;
-       }
-       break;
-       case INST:
-       strcpy(tmp, "INST");
-       break;
-       case PSEUDO:
-       strcpy(tmp, "PSEUDO");
-       break;
-       case COMMENT:
-       strcpy(tmp, "COMMENT");
-       break;
-       }
-       if(!strcmp(parsed->inst, "START")) {
-//location = hexToDec(parsed->operand[0]);
-parsed->location = location;
+    if(fclose(fp))
+        puts("WARNING: Error closing file.");
 }
-else if(!strcmp(parsed->inst, "END"))
-break;
-printf("[%04X] %s : %s", location, tmp, source);
-location += parsed->format;
-}
-*/
-if(fclose(fp))
-    puts("WARNING: Error closing file.");
-    }
 
 void symbolCMD() {
+    SYMBOL_ENTRY* cur = symTable;
+    if(!symTable) {
+        puts("Symbol table is empty.");
+        return;
+    }
+    while(cur)
+        printf("\t%s\t%4X\n", cur->symbol, cur->address);
 }
 
 ASM_SRC* parseASM(char* source, int location) {
@@ -365,7 +333,12 @@ void symTableAdd(char* symbol, int address) {
         symTable = newEntry;
         return;
     }
-    while(cur->next)
+    if(strcmp(symTable->symbol, symbol) > 0) {
+        newEntry->next = symTable;
+        symTable = newEntry;
+        return;
+    }
+    while(cur->next && strcmp(cur->next->symbol, symbol) < 0)
         cur = cur->next;
     cur->next = newEntry;
 }
