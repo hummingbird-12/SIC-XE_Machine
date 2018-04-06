@@ -35,9 +35,9 @@ char registers[7] = {
 };
 
 void assembleCMD(INPUT_CMD);
-ASM_SRC* parseASM(char*, int);
-ASM_SRC* recogTypeASM(char*);
+ASM_SRC* parseASM(char*);
 void setError(ASM_SRC*, ASM_ERROR); 
+bool isRegister(char);
 void symbolCMD();
 void symTableAdd(char*, int);
 bool symTableSearch(char*);
@@ -150,7 +150,7 @@ void assembleCMD(INPUT_CMD ipcmd) {
     printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
     printf("--------------------------------------------------------\n");
     while(fgets(source, ASM_LEN, fp) != NULL) {
-        parsed = parseASM(source, location);
+        parsed = parseASM(source);
         if(parsed->hasLabel)
             symTableAdd(parsed->label, location);
         switch(parsed->type) {
@@ -190,14 +190,7 @@ void symbolCMD() {
     }
 }
 
-ASM_SRC* parseASM(char* source, int location) {
-    ASM_SRC* parseResult;
-
-    parseResult = recogTypeASM(source);
-    return parseResult;
-}
-
-ASM_SRC* recogTypeASM(char* source) {
+ASM_SRC* parseASM(char* source) {
     char delim[] = " \t\n";
     char tmp[ASM_LEN] = {'\0'};
     //char opr[ASM_LEN] = {'\0'};
@@ -205,12 +198,14 @@ ASM_SRC* recogTypeASM(char* source) {
     int i, j;
     ASM_SRC* parseResult;
     HASH_ENTRY* bucket;
+    DIREC dir;
 
     parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
     parseResult->hasLabel = false;
     parseResult->type = INST;
     parseResult->errorCode = OK;
     parseResult->indexing = false;
+    parseResult->operandCnt = 0;
 
     j = 0;
     for(i = 0; source[i]; i++) {
@@ -296,15 +291,20 @@ ASM_SRC* recogTypeASM(char* source) {
         }
     }
 
-    if(bucket && !bucket->operandCnt)
-        return parseResult;
     // tokenize the operand field part
     tok = strtok(NULL, delim); // first operand
+    if(bucket && ((bucket->operandCnt && !tok) || (!bucket->operandCnt && tok))) {
+        setError(parseResult, OPERAND);
+        return parseResult;
+    }
+    else if(bucket && !bucket->operandCnt)
+        return parseResult;
     if(tok && !strcmp(tok, ",")) { // comma should not be present
         setError(parseResult, OPERAND);
         return parseResult;
     }
     strcpy(parseResult->operand[0], tok);
+    parseResult->operandCnt = 1;
     tok = strtok(NULL, delim); // expected a comma if there's second operand
     if(tok && strcmp(tok, ",")) { // comma should be present
         setError(parseResult, OPERAND);
@@ -317,8 +317,100 @@ ASM_SRC* recogTypeASM(char* source) {
             return parseResult;
         }
         strcpy(parseResult->operand[1], tok);
+        parseResult->operandCnt = 2;
     }
+
+    // check operand format for instructions
+    if(parseResult->type == INST) {
+        switch(parseResult->format) {
+            case format2:
+                // first operand must be a Register
+                if(strlen(parseResult->operand[0]) != 1 || !isRegister(parseResult->operand[0][0])) {
+                    setError(parseResult, OPERAND);
+                    return parseResult;
+                }
+                // second operand for SHIFTL/R must be a number
+                if(!strncmp(parseResult->inst, "SHIFT", 5)) {
+                    for(i = 0; parseResult->operand[1][i]; i++)
+                        if(!isdigit(parseResult->operand[1][i])) {
+                            setError(parseResult, OPERAND);
+                            return parseResult;
+                        }
+                }
+                // second operand must be a Register
+                else if(bucket->operandCnt != 1){
+                    if(strlen(parseResult->operand[1]) != 1 || !isRegister(parseResult->operand[1][0])) {
+                        setError(parseResult, OPERAND);
+                        return parseResult;
+                    }
+                }
+                break;
+            case format3:
+            case format4:
+                // one non-register operand or second operand is not X (indexing)
+                if((strlen(parseResult->operand[0]) == 1 && isRegister(parseResult->operand[0][0])) || (strlen(parseResult->operand[1]) && strcmp(parseResult->operand[1], "X")) ) {
+                    setError(parseResult, OPERAND);
+                    return parseResult;
+                }
+                parseResult->indexing = true;
+                break;
+            default:
+                break;
+        }
+    }
+    /*
+    // check operand format for pseudo-instructions
+    else if(parseResult->type == PSEUDO) {
+        // pseudo-instructions must have only one operand
+        if(parseResult->operandCnt != 1) {
+            setError(parseResult, OPERAND);
+            return parseResult;
+        }
+        switch(parseResult->operand[0][0]) {
+            case '#':
+                j = -1;
+            case '@':
+                if(symTableSearch(parseResult->operand[0] + 1))
+                    break;
+                for(i = 1; parseResult->operand[0][i]; i++)
+                    if(!(j == -1 ? isdigit(parseResult->operand[0][i]) : isxdigit(parseResult->operand[0][i]))) {
+                        setError(parseResult, OPERAND);
+                        return parseResult;
+                    }
+                break;
+            case 'X':
+                j = -2;
+            case 'C':
+                for(i = 2; parseResult->operand[0][i + 1]; i++)
+                    if(!(j == -2 ? isxdigit(parseResult->operand[0][i]) : isdigit(parseResult->operand[0][i]))) {
+                        setError(parseResult, OPERAND);
+                        return parseResult;
+                    }
+                if(parseResult->operand[0][0] != '\'' || parseResult->operand[0][i] != '\'') {
+                    setError(parseResult, OPERAND);
+                    return parseResult;
+                }
+                break;
+            default:
+                if(!symTableSearch(parseResult->operand[0]))
+                    for(i = 0; parseResult->operand[0][i]; i++)
+                        if(!isxdigit(parseResult->operand[0][i])) {
+                            setError(parseResult, OPERAND);
+                            return parseResult;
+                        }
+                break;
+        }
+     }
+     */
     return parseResult;
+}
+
+bool isRegister(char reg) {
+    int i;
+    for(i = 0; i < 7; i++)
+        if(registers[i] == reg)
+            return true;
+    return false;
 }
 
 void setError(ASM_SRC* parsedResult, ASM_ERROR error) {

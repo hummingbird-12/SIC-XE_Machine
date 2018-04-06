@@ -53,6 +53,10 @@ typedef enum {
     OK, SYMBOL, INSTRUCTION, OPERAND
 } ASM_ERROR;
 
+typedef enum {
+    START, END, BASE, BYTE, WORD, RESB, RESW
+} DIREC;
+
 // command format structure
 typedef struct {
     char str[CMD_LEN];
@@ -92,6 +96,7 @@ typedef struct {
     bool hasLabel;
     bool indexing;
     int location;
+    int operandCnt;
     enum { ERROR, INST, PSEUDO, COMMENT } type;
     enum { NONE, format1, format2, format3, format4 } format;
     ASM_ERROR errorCode;
