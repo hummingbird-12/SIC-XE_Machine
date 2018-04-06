@@ -85,10 +85,12 @@ typedef struct {
     char label[ASM_LEN];
     char inst[ASM_LEN];
     char operand[2][ASM_LEN];
-    int operandCnt;
     int location;
+    enum { ERROR, inst, direc, comment } type;
+    bool hasLabel;
+    enum { SAFE, SYMBOL, OPCODE, OPERAND } errorCode;
 } ASM_SRC;
-
+    
 // symbol table entry structure
 typedef struct SYMBOL_STRUCT {
     char symbol[ASM_LEN];
