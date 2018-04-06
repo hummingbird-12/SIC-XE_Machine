@@ -30,7 +30,7 @@ char exceptionFmt3[][OPCODE_LEN] = {
 };
 
 void opCMD(INPUT_CMD ipcmd) {
-    HASH_ENTRY* bucket = bucketFound(ipcmd.arg[0]);
+    HASH_ENTRY* bucket = bucketSearch(ipcmd.arg[0]);
 
     if(bucket) // target found!
         printf("opcode is %s\n", bucket->code);
@@ -140,7 +140,7 @@ void hashFree() {
     }
 }
 
-HASH_ENTRY* bucketFound(char* inst) {
+HASH_ENTRY* bucketSearch(char* inst) {
     HASH_ENTRY* bucket;
 
     bucket = hashTable[hashFunction(inst)]; // get front bucket from hash function
