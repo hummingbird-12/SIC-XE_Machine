@@ -146,10 +146,13 @@ void assembleCMD(INPUT_CMD ipcmd) {
         puts("ERROR: File not found.");
         return;
     }
+
     printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
     printf("--------------------------------------------------------\n");
     while(fgets(source, ASM_LEN, fp) != NULL) {
         parsed = parseASM(source, location);
+        if(parsed->hasLabel)
+            symTableAdd(parsed->label, location);
         switch(parsed->type) {
             case ERROR:
                 printf("ERROR");
@@ -181,8 +184,10 @@ void symbolCMD() {
         puts("Symbol table is empty.");
         return;
     }
-    while(cur)
+    while(cur) {
         printf("\t%s\t%4X\n", cur->symbol, cur->address);
+        cur = cur->next;
+    }
 }
 
 ASM_SRC* parseASM(char* source, int location) {
@@ -333,13 +338,14 @@ void symTableAdd(char* symbol, int address) {
         symTable = newEntry;
         return;
     }
-    if(strcmp(symTable->symbol, symbol) > 0) {
+    if(strcmp(symTable->symbol, symbol) < 0) {
         newEntry->next = symTable;
         symTable = newEntry;
         return;
     }
-    while(cur->next && strcmp(cur->next->symbol, symbol) < 0)
+    while(cur->next && strcmp(cur->next->symbol, symbol) > 0)
         cur = cur->next;
+    newEntry->next = cur->next;
     cur->next = newEntry;
 }
 
