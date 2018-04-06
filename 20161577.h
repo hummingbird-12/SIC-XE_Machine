@@ -28,7 +28,7 @@
 #define ARG_MAX 3           // maximum argument count
 #define MEM_SIZE 1048576    // 2^20 = 1MB
 #define HASH_SIZE 20        // hash table size
-#define ASM_LEN 31          // maximum length of single asm source line
+#define ASM_LEN 121          // maximum length of single asm source line
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
@@ -85,10 +85,12 @@ typedef struct {
     char label[ASM_LEN];
     char inst[ASM_LEN];
     char operand[2][ASM_LEN];
-    int location;
-    enum { ERROR, inst, direc, comment } type;
     bool hasLabel;
-    enum { OK, SYMBOL, OPCODE, OPERAND } errorCode;
+    bool indexing;
+    int location;
+    enum { ERROR, INST, PSEUDO, COMMENT } type;
+    enum { format1, format2, format3, format4 } format;
+    enum { OK, SYMBOL, INSTRUCTION, OPERAND } errorCode;
 } ASM_SRC;
     
 // symbol table entry structure
@@ -101,4 +103,4 @@ typedef struct SYMBOL_STRUCT {
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
 
-HASH_ENTRY* bucketFound(char*);                // function to search bucket
+HASH_ENTRY* bucketSearch(char*);                // function to search bucket
