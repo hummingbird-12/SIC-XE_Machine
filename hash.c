@@ -142,8 +142,10 @@ void hashFree() {
 
 HASH_ENTRY* bucketSearch(char* inst) {
     HASH_ENTRY* bucket;
+    char tmp[ASM_LEN] = {'\0'};
 
-    bucket = hashTable[hashFunction(inst)]; // get front bucket from hash function
+    strcpy(tmp, inst);
+    bucket = hashTable[hashFunction(tmp)]; // get front bucket from hash function
     while(bucket && strcmp(bucket->inst, inst)) // search till match or end
         bucket = bucket->next;
     return bucket;
