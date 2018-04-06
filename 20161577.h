@@ -49,6 +49,10 @@ typedef enum {
     help, dir, quit, hist, dump, edit, fill, reset, op, oplist, type, assemble, symbol, invFormat, invHex, invVal, invFile
 } CMD_FUNC;
 
+typedef enum {
+    OK, SYMBOL, INSTRUCTION, OPERAND
+} ASM_ERROR;
+
 // command format structure
 typedef struct {
     char str[CMD_LEN];
@@ -89,8 +93,8 @@ typedef struct {
     bool indexing;
     int location;
     enum { ERROR, INST, PSEUDO, COMMENT } type;
-    enum { format1, format2, format3, format4 } format;
-    enum { OK, SYMBOL, INSTRUCTION, OPERAND } errorCode;
+    enum { NONE, format1, format2, format3, format4 } format;
+    ASM_ERROR errorCode;
 } ASM_SRC;
     
 // symbol table entry structure

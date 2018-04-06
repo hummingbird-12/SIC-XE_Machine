@@ -30,9 +30,14 @@ char directives[7][6] = {
     "RESB",
     "RESW"
 };
+char registers[7] = {
+    'A', 'X', 'L', 'B', 'S', 'T', 'F'
+};
 
 void assembleCMD(INPUT_CMD);
 ASM_SRC* parseASM(char*, int);
+ASM_SRC* recogTypeASM(char*);
+void setError(ASM_SRC*, ASM_ERROR); 
 void symbolCMD();
 void symTableAdd(char*, int);
 bool symTableSearch(char*);
@@ -141,53 +146,90 @@ void assembleCMD(INPUT_CMD ipcmd) {
         puts("ERROR: File not found.");
         return;
     }
+    printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
+    printf("--------------------------------------------------------\n");
     while(fgets(source, ASM_LEN, fp) != NULL) {
         parsed = parseASM(source, location);
-        char tmp[30];
         switch(parsed->type) {
             case ERROR:
-                strcpy(tmp, "ERROR");
-                switch(parsed->errorCode) {
-                    case SYMBOL:
-                        strcat(tmp, "(SYM)");
-                        break;
-                    case INSTRUCTION:
-                        strcat(tmp, "(INST)");
-                        break;
-                    case OPERAND:
-                        strcat(tmp, "(OPR)");
-                        break;
-                    default:
-                        break;
-              }
+                printf("ERROR");
                 break;
             case INST:
-                strcpy(tmp, "INST");
+                printf("INST");
                 break;
             case PSEUDO:
-                strcpy(tmp, "PSEUDO");
+                printf("PSEUDO");
                 break;
             case COMMENT:
-                strcpy(tmp, "COMMENT");
+                printf("COMMENT");
                 break;
         }
-        printf("%s : %s", tmp, source);
+        printf("\t\t%s\t\t%s\t\t%s", parsed->label, parsed->inst, parsed->operand[0]);
+        if(parsed->operand[1][0] != '\0')
+            printf(", %s", parsed->operand[1]);
+        puts("");
         if(!strcmp(parsed->inst, "END"))
             break;
     }
-    if(fclose(fp))
-        puts("WARNING: Error closing file.");
+    /*
+       char tmp[30];
+       switch(parsed->type) {
+       case ERROR:
+       strcpy(tmp, "ERROR");
+       switch(parsed->errorCode) {
+       case SYMBOL:
+       strcat(tmp, "(SYM)");
+       break;
+       case INSTRUCTION:
+       strcat(tmp, "(INST)");
+       break;
+       case OPERAND:
+       strcat(tmp, "(OPR)");
+       break;
+       default:
+       break;
+       }
+       break;
+       case INST:
+       strcpy(tmp, "INST");
+       break;
+       case PSEUDO:
+       strcpy(tmp, "PSEUDO");
+       break;
+       case COMMENT:
+       strcpy(tmp, "COMMENT");
+       break;
+       }
+       if(!strcmp(parsed->inst, "START")) {
+//location = hexToDec(parsed->operand[0]);
+parsed->location = location;
 }
+else if(!strcmp(parsed->inst, "END"))
+break;
+printf("[%04X] %s : %s", location, tmp, source);
+location += parsed->format;
+}
+*/
+if(fclose(fp))
+    puts("WARNING: Error closing file.");
+    }
 
 void symbolCMD() {
 }
 
 ASM_SRC* parseASM(char* source, int location) {
+    ASM_SRC* parseResult;
+
+    parseResult = recogTypeASM(source);
+    return parseResult;
+}
+
+ASM_SRC* recogTypeASM(char* source) {
     char delim[] = " \t\n";
-    //char tokens[5][ASM_LEN] = {'\0'};
     char tmp[ASM_LEN] = {'\0'};
+    //char opr[ASM_LEN] = {'\0'};
     char *tok;
-    int i;//, j, tokCnt = 0;
+    int i, j;
     ASM_SRC* parseResult;
     HASH_ENTRY* bucket;
 
@@ -196,13 +238,26 @@ ASM_SRC* parseASM(char* source, int location) {
     parseResult->type = INST;
     parseResult->errorCode = OK;
     parseResult->indexing = false;
-    parseResult->location = location;
 
-    strcpy(tmp, source);
+    j = 0;
+    for(i = 0; source[i]; i++) {
+        if(source[i] == ',') {
+            strcpy(tmp + j, " , ");
+            j += 3;
+        }
+        else
+            tmp[j++] = source[i];
+    }
+
     tok = strtok(tmp, delim);
 
     if(tok[0] == '.') { // comment found
         parseResult->type = COMMENT;
+        parseResult->format = NONE;
+        return parseResult;
+    }
+    else if(!strcmp(tok, ",")) { // comma should not be present
+        setError(parseResult, INSTRUCTION);
         return parseResult;
     }
 
@@ -210,26 +265,30 @@ ASM_SRC* parseASM(char* source, int location) {
     for(i = 0; i < 7; i++)
         if(!strcmp(tok, directives[i])) { // pseudo instruction found
             parseResult->type = PSEUDO;
+            parseResult->format = NONE;
             strcpy(parseResult->inst, tok);
             break;
         }
 
     if(parseResult->type != PSEUDO) { // if not a pseudo instruction
         bucket = bucketSearch(tok + (tok[0] == '+' ? 1 : 0) );
-        
+
         // if first field is a label
         if(!bucket) {
             if(symTableSearch(tok)) { // symbol already exists
-                parseResult->type = ERROR;
-                parseResult->errorCode = SYMBOL;
+                setError(parseResult, SYMBOL);
                 return parseResult;
             }
             else { // new symbol found, add to SYMTAB and move on
                 parseResult->hasLabel = true;
                 strcpy(parseResult->label, tok);
-                symTableAdd(tok, location);
                 tok = strtok(NULL, delim);
                 bucket = bucketSearch(tok + (tok[0] == '+' ? 1 : 0) );
+
+                if(!strcmp(tok, ",")) { // comma should not be present
+                    setError(parseResult, INSTRUCTION);
+                    return parseResult;
+                }
             }
         }
 
@@ -238,100 +297,61 @@ ASM_SRC* parseASM(char* source, int location) {
             if(!strcmp(tok, directives[i])) { // pseudo instruction found
                 parseResult->type = PSEUDO;
                 strcpy(parseResult->inst, tok);
+                parseResult->format = NONE;
                 break;
             }
-       
+
         // if field is an instruction
         if(bucket) {
             parseResult->type = INST;
-            parseResult->format = bucket->format; // get format from hash table
+            parseResult->format = bucket->format + 1; // get format from hash table
             if(tok[0] == '+') {
                 // not a format 3/4 instruction
                 if(bucket->format != f34) {
-                    printf("[A]");
-                    parseResult->type = ERROR;
-                    parseResult->errorCode = INSTRUCTION;
+                    setError(parseResult, INSTRUCTION);
                     return parseResult;
                 }
                 // found a format 4 instruction
-                strcpy(parseResult->inst, tok);
                 parseResult->format = format4;
             }
+            strcpy(parseResult->inst, tok);
         }
         // invalid instruction
         else if(parseResult->type != PSEUDO){
-            printf("[B]");
-            parseResult->type = ERROR;
-            parseResult->errorCode = INSTRUCTION;
+            setError(parseResult, INSTRUCTION);
             return parseResult;
         }
     }
 
-    return parseResult;
-
-    /*
-    i = 0;
-    while(tok && i < 5) {
-        strcpy(tokens[i++], tok);
-        tok = strtok(NULL, delim);
+    if(bucket && !bucket->operandCnt)
+        return parseResult;
+    // tokenize the operand field part
+    tok = strtok(NULL, delim); // first operand
+    if(tok && !strcmp(tok, ",")) { // comma should not be present
+        setError(parseResult, OPERAND);
+        return parseResult;
     }
+    strcpy(parseResult->operand[0], tok);
+    tok = strtok(NULL, delim); // expected a comma if there's second operand
+    if(tok && strcmp(tok, ",")) { // comma should be present
+        setError(parseResult, OPERAND);
+        return parseResult;
+    }
+    if(tok) {
+        tok = strtok(NULL, delim); // second operand
+        if(!tok || !strcmp(tok, ",")) {
+            setError(parseResult, OPERAND);
+            return parseResult;
+        }
+        strcpy(parseResult->operand[1], tok);
+    }
+    return parseResult;
+}
 
-    
-       j = 0;
-       for(i = 0; source[i]; i++) {
-       if(source[i] == ',') {
-       strcpy(str + j, " , ");
-       j += 3;
-       }
-       else
-       str[j++] = source[i];
-       }
-
-       tok = strtok(str, delim);
-       if(!tok)
-       return parseResult;
-       if(!strcmp(tok, ".")) { // check for comment
-       parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
-       parseResult->label[0] = '.';
-       return parseResult;
-       }
-       while(tok) {
-       strcpy(tokens[tokCnt++], tok);
-       tok = strtok(NULL, delim);
-       if(tokCnt == 5)
-       break;
-       }
-       if(tok) // invalid field exists
-       return parseResult; // returns NULL pointer
-
-       parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
-       if((bucket = bucketFound(tokens[0]))) { // if first token is the instruction
-       strcpy(parseResult->inst, tokens[0]);
-       i = 1;
-       }
-       else if ((bucket = bucketFound(tokens[1]))) { // if second token is the instruction
-       strcpy(parseResult->label, tokens[0]);
-       strcpy(parseResult->inst, tokens[1]);
-       i = 2;
-       }
-       else if(!bucket) {
-       free(parseResult);
-       parseResult = NULL;
-       return parseResult;
-       }
-
-       for(j = 0; i + j < tokCnt; j++) {
-       strcpy(parseResult->operand[j], tokens[i + j]);
-       if(i + j + 1 < tokCnt && strcmp(tokens[i + j + 1], ",")) { // no comma in between operands
-       free(parseResult);
-       parseResult = NULL;
-       return parseResult;
-       }
-       j++;
-       }
-
-       return parseResult;
-       */
+void setError(ASM_SRC* parsedResult, ASM_ERROR error) {
+    parsedResult->type = ERROR;
+    parsedResult->format = NONE;
+    parsedResult->errorCode = error;
 }
 
 void symTableAdd(char* symbol, int address) {
