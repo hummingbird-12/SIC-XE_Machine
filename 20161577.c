@@ -21,6 +21,7 @@
 #include "hash.h"
 
 SYMBOL_ENTRY* symTable;
+ASM_SRC* parseList = NULL;
 char directives[7][6] = {
     "START",
     "END",
@@ -36,12 +37,14 @@ char registers[7] = {
 
 void assembleCMD(INPUT_CMD);
 ASM_SRC* parseASM(char*);
+bool assemblerPass1(FILE*, FILE*);
+void assemblerPass2();
 void setError(ASM_SRC*, ASM_ERROR); 
+void printASMError(int, ASM_ERROR);
 bool isRegister(char);
 void symbolCMD();
 void symTableAdd(char*, int);
 bool symTableSearch(char*);
-void symTableFree();
 
 int main() {
     char inp[CMD_LEN];  // input string
@@ -134,17 +137,11 @@ int main() {
 void assembleCMD(INPUT_CMD ipcmd) {
     FILE* fp = fopen(ipcmd.arg[0], "r");
     FILE *lstFile, *objFile;
-    char source[ASM_LEN];
     char lstName[CMD_LEN], objName[CMD_LEN];
-    ASM_SRC* parsed;
-    int location = -1;
-    int lineNum = 5;
-    bool errorFlag = false;
 
-    if(symTable) {
-        symTableFree();
-        symTable = NULL;
-    }
+    lstFile = objFile = NULL;
+
+    symTableFree();
 
     if(!fp) {
         puts("ERROR: File not found.");
@@ -166,125 +163,189 @@ void assembleCMD(INPUT_CMD ipcmd) {
         //return;
     }
 
-    while(fgets(source, ASM_LEN, fp) != NULL) {
-        parsed = parseASM(source);
-        if(!strcmp(parsed->inst, "START")) {
-            location = hexToDec(parsed->operand[0]);
-            parsed->location = location;
+    if(!assemblerPass1(fp, NULL))
+        return;
+    assemblerPass2();
+
+
+    //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
+    //puts("WARNING: Error closing file.");
+
+    /*
+       printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
+       printf("--------------------------------------------------------\n");
+       while(fgets(source, ASM_LEN, fp) != NULL) {
+       parsed = parseASM(source);
+       if(parsed->hasLabel)
+       symTableAdd(parsed->label, location);
+       switch(parsed->type) {
+       case ERROR:
+       printf("ERROR");
+       break;
+       case INST:
+       printf("INST");
+       break;
+       case PSEUDO:
+       printf("PSEUDO");
+       break;
+       case COMMENT:
+       printf("COMMENT");
+       break;
+       }
+       printf("\t\t%s\t\t%s\t\t%s", parsed->label, parsed->inst, parsed->operand[0]);
+       if(parsed->operand[1][0] != '\0')
+       printf(", %s", parsed->operand[1]);
+       puts("");
+       if(!strcmp(parsed->inst, "END"))
+       break;
+       }
+       */
+}
+
+bool assemblerPass1(FILE* src, FILE* lst) {
+    ASM_SRC *curParse, *prevParse;
+    char source[ASM_LEN];
+    int location = -1;
+    int lineNum = 5;
+    bool errorFlag = false;
+
+    // process ASM source file line by line
+    while(fgets(source, ASM_LEN, src) != NULL) {
+        curParse = parseASM(source); // get parsed line
+        // START directive found
+        if(!strcmp(curParse->inst, "START")) {
+            // if START directive appears for the second time
+            if(location != -1) {
+                puts("ERROR: START directive appeared twice.");
+                errorFlag = true;
+                break;
+            }
+            // initialize LOCCTR
+            location = hexToDec(curParse->operand[0]);
+            curParse->location = location;
+            parseList = curParse;
+            prevParse = NULL;
         }
         // no START directive, set start address as 0
         if(location == -1) {
             location = 0;
-            parsed->location = location;
+            parseList = curParse;
+            prevParse = NULL;
+            curParse->location = location;
         }
+        else if(prevParse)
+            prevParse->next = curParse; // link node to list
+
         printf("%5d\t", lineNum);
-        
-        switch(parsed->type) {
-            case ERROR:
-                errorFlag = true;
-                break;
-            case INST:
-                printf("%04X\t", location);
-                location += parsed->format;
-                break;
-            case PSEUDO:
-                switch(parsed->direcName) {
-                    case START:
-                        printf("%04X\t", location);
-                        break;
-                    case END:
-                    case BASE:
-                        printf("\t");
-                        break;
-                    case BYTE:
-                        printf("%04X\t", location);
-                        if(parsed->operand[0][0] == 'X')
-                            location += (strlen(parsed->operand[0]) - 3 + 1) / 2;
-                        else if(parsed->operand[0][0] == 'C')
-                            location += strlen(parsed->operand[0]) - 3;
-                        break;
-                    case WORD:
-                        printf("%04X\t", location);
-                        location += 3;
-                        break;
-                    case RESB:
-                        printf("%04X\t", location);
-                        location += atoi(parsed->operand[0]);
-                        break;
-                    case RESW:
-                        printf("%04X\t", location);
-                        location += atoi(parsed->operand[0]) * 3;
-                        break;
-                    default:
-                        break;
+
+        curParse->location = location;
+
+        // if current line is NOT a comment
+        if(curParse->type != COMMENT) {
+            // if current line has symbol in label field
+            if(curParse->hasLabel) {
+                // if symbol is already in SYMTAB
+                if(symTableSearch(curParse->label)) {
+                    setError(curParse, SYMBOL);
+                    errorFlag = true;
+                    break;
                 }
-                break;
-            case COMMENT:
-                printf("\t");
-                break;
-            default:
-                break;
+                // new symbol found
+                else
+                    symTableAdd(curParse->label, location);
+            }
+            switch(curParse->type) {
+                case ERROR:
+                    errorFlag = true;
+                    break;
+                case INST:
+                    printf("%04X\t", location);
+                    location += curParse->format;
+                    break;
+                case PSEUDO:
+                    switch(curParse->direcName) {
+                        case START:
+                            printf("%04X\t", location);
+                            break;
+                        case END:
+                        case BASE:
+                            printf("\t");
+                            break;
+                        case BYTE:
+                            printf("%04X\t", location);
+                            if(curParse->operand[0][0] == 'X')
+                                location += (strlen(curParse->operand[0]) - 3 + 1) / 2;
+                            else if(curParse->operand[0][0] == 'C')
+                                location += strlen(curParse->operand[0]) - 3;
+                            break;
+                        case WORD:
+                            printf("%04X\t", location);
+                            location += 3;
+                            break;
+                        case RESB:
+                            printf("%04X\t", location);
+                            location += atoi(curParse->operand[0]);
+                            break;
+                        case RESW:
+                            printf("%04X\t", location);
+                            location += atoi(curParse->operand[0]) * 3;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case COMMENT:
+                    printf("\t");
+                    break;
+                default:
+                    break;
+            }
+
         }
+        // if line is a comment
+        else
+            printf("\t");
+
         if(errorFlag)
             break;
 
-        source[strlen(source) - 1] = '\0';
+        if(source[strlen(source) - 1] == '\n')
+            source[strlen(source) - 1] = '\0';
         puts(source);
         lineNum += 5;
-        if(!strcmp(parsed->inst, "END"))
+        prevParse = curParse;
+        if(!strcmp(curParse->inst, "END"))
             break;
     }
 
     if(errorFlag) {
-        printf("ERROR: Invalid assembly source:\n");
-        printf("[Line %d] Error in ", lineNum);
-        switch(parsed->errorCode) {
-            case SYMBOL:
-                puts("symbol field.");
-                break;
-            case INSTRUCTION:
-                puts("instruction field.");
-                break;
-            case OPERAND:
-                puts("operand field.");
-                break;
-            default:
-                break;
-        }
+        printASMError(lineNum, curParse->errorCode);
+        if(source[strlen(source) - 1] == '\n')
+            source[strlen(source) - 1] = '\0';
+        puts(source);
+        return false;
     }
+    return true;
+}
 
-    //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
-        //puts("WARNING: Error closing file.");
+void assemblerPass2() {}
 
-    /*
-    printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
-    printf("--------------------------------------------------------\n");
-    while(fgets(source, ASM_LEN, fp) != NULL) {
-        parsed = parseASM(source);
-        if(parsed->hasLabel)
-            symTableAdd(parsed->label, location);
-        switch(parsed->type) {
-            case ERROR:
-                printf("ERROR");
-                break;
-            case INST:
-                printf("INST");
-                break;
-            case PSEUDO:
-                printf("PSEUDO");
-                break;
-            case COMMENT:
-                printf("COMMENT");
-                break;
-        }
-        printf("\t\t%s\t\t%s\t\t%s", parsed->label, parsed->inst, parsed->operand[0]);
-        if(parsed->operand[1][0] != '\0')
-            printf(", %s", parsed->operand[1]);
-        puts("");
-        if(!strcmp(parsed->inst, "END"))
+void printASMError(int lineNum, ASM_ERROR errorCode) {
+    printf("ERROR: Invalid assembly source:\n");
+    printf("[Line %d] Error in ", lineNum);
+    switch(errorCode) {
+        case SYMBOL:
+            puts("symbol field.");
+            break;
+        case INSTRUCTION:
+            puts("instruction field.");
+            break;
+        case OPERAND:
+            puts("operand field.");
+            break;
+        default:
             break;
     }
-    */
 }
 
 void symbolCMD() {
@@ -294,7 +355,7 @@ void symbolCMD() {
         return;
     }
     while(cur) {
-        printf("\t%s\t%4X\n", cur->symbol, cur->address);
+        printf("\t%s\t%04X\n", cur->symbol, cur->address);
         cur = cur->next;
     }
 }
@@ -314,6 +375,7 @@ ASM_SRC* parseASM(char* source) {
     parseResult->errorCode = OK;
     parseResult->indexing = false;
     parseResult->operandCnt = 0;
+    parseResult->next = NULL;
 
     j = 0;
     for(i = 0; source[i]; i++) {
@@ -471,48 +533,48 @@ ASM_SRC* parseASM(char* source) {
     /*
     // check operand format for pseudo-instructions
     else if(parseResult->type == PSEUDO) {
-        // pseudo-instructions must have only one operand
-        if(parseResult->operandCnt != 1) {
-            setError(parseResult, OPERAND);
-            return parseResult;
-        }
-        switch(parseResult->operand[0][0]) {
-            case '#':
-                j = -1;
-            case '@':
-                if(symTableSearch(parseResult->operand[0] + 1))
-                    break;
-                for(i = 1; parseResult->operand[0][i]; i++)
-                    if(!(j == -1 ? isdigit(parseResult->operand[0][i]) : isxdigit(parseResult->operand[0][i]))) {
-                        setError(parseResult, OPERAND);
-                        return parseResult;
-                    }
-                break;
-            case 'X':
-                j = -2;
-            case 'C':
-                for(i = 2; parseResult->operand[0][i + 1]; i++)
-                    if(!(j == -2 ? isxdigit(parseResult->operand[0][i]) : isdigit(parseResult->operand[0][i]))) {
-                        setError(parseResult, OPERAND);
-                        return parseResult;
-                    }
-                if(parseResult->operand[0][0] != '\'' || parseResult->operand[0][i] != '\'') {
-                    setError(parseResult, OPERAND);
-                    return parseResult;
-                }
-                break;
-            default:
-                if(!symTableSearch(parseResult->operand[0]))
-                    for(i = 0; parseResult->operand[0][i]; i++)
-                        if(!isxdigit(parseResult->operand[0][i])) {
-                            setError(parseResult, OPERAND);
-                            return parseResult;
-                        }
-                break;
-        }
-     }
-     */
-    return parseResult;
+// pseudo-instructions must have only one operand
+if(parseResult->operandCnt != 1) {
+setError(parseResult, OPERAND);
+return parseResult;
+}
+switch(parseResult->operand[0][0]) {
+case '#':
+j = -1;
+case '@':
+if(symTableSearch(parseResult->operand[0] + 1))
+break;
+for(i = 1; parseResult->operand[0][i]; i++)
+if(!(j == -1 ? isdigit(parseResult->operand[0][i]) : isxdigit(parseResult->operand[0][i]))) {
+setError(parseResult, OPERAND);
+return parseResult;
+}
+break;
+case 'X':
+j = -2;
+case 'C':
+for(i = 2; parseResult->operand[0][i + 1]; i++)
+if(!(j == -2 ? isxdigit(parseResult->operand[0][i]) : isdigit(parseResult->operand[0][i]))) {
+setError(parseResult, OPERAND);
+return parseResult;
+}
+if(parseResult->operand[0][0] != '\'' || parseResult->operand[0][i] != '\'') {
+setError(parseResult, OPERAND);
+return parseResult;
+}
+break;
+default:
+if(!symTableSearch(parseResult->operand[0]))
+for(i = 0; parseResult->operand[0][i]; i++)
+if(!isxdigit(parseResult->operand[0][i])) {
+setError(parseResult, OPERAND);
+return parseResult;
+}
+break;
+}
+}
+*/
+return parseResult;
 }
 
 bool isRegister(char reg) {

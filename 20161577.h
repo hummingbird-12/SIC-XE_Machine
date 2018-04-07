@@ -113,5 +113,6 @@ typedef struct SYMBOL_STRUCT {
 
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
+void symTableFree(); // function to free SYMTAB
 
 HASH_ENTRY* bucketSearch(char*);                // function to search bucket
