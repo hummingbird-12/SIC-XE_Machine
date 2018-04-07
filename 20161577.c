@@ -37,8 +37,8 @@ char registers[7] = {
 
 void assembleCMD(INPUT_CMD);
 ASM_SRC* parseASM(char*);
-bool assemblerPass1(FILE*, FILE*);
-void assemblerPass2();
+bool assemblerPass1(FILE*);
+void assemblerPass2(FILE*, FILE*, FILE*);
 void setError(ASM_SRC*, ASM_ERROR); 
 void printASMError(int, ASM_ERROR);
 bool isRegister(char);
@@ -135,15 +135,14 @@ int main() {
 }
 
 void assembleCMD(INPUT_CMD ipcmd) {
-    FILE* fp = fopen(ipcmd.arg[0], "r");
-    FILE *lstFile, *objFile;
+    FILE *srcFile, *lstFile, *objFile;
     char lstName[CMD_LEN], objName[CMD_LEN];
-
-    lstFile = objFile = NULL;
 
     symTableFree();
 
-    if(!fp) {
+    lstFile = objFile = NULL;
+    srcFile = fopen(ipcmd.arg[0], "r");
+    if(!srcFile) {
         puts("ERROR: File not found.");
         return;
     }
@@ -163,46 +162,15 @@ void assembleCMD(INPUT_CMD ipcmd) {
         //return;
     }
 
-    if(!assemblerPass1(fp, NULL))
+    if(!assemblerPass1(srcFile))
         return;
-    assemblerPass2();
-
+    assemblerPass2(srcFile, NULL, NULL);
 
     //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
     //puts("WARNING: Error closing file.");
-
-    /*
-       printf("TYPE\t\tLABEL\t\tINST\t\tOPR\n");
-       printf("--------------------------------------------------------\n");
-       while(fgets(source, ASM_LEN, fp) != NULL) {
-       parsed = parseASM(source);
-       if(parsed->hasLabel)
-       symTableAdd(parsed->label, location);
-       switch(parsed->type) {
-       case ERROR:
-       printf("ERROR");
-       break;
-       case INST:
-       printf("INST");
-       break;
-       case PSEUDO:
-       printf("PSEUDO");
-       break;
-       case COMMENT:
-       printf("COMMENT");
-       break;
-       }
-       printf("\t\t%s\t\t%s\t\t%s", parsed->label, parsed->inst, parsed->operand[0]);
-       if(parsed->operand[1][0] != '\0')
-       printf(", %s", parsed->operand[1]);
-       puts("");
-       if(!strcmp(parsed->inst, "END"))
-       break;
-       }
-       */
 }
 
-bool assemblerPass1(FILE* src, FILE* lst) {
+bool assemblerPass1(FILE* src) {
     ASM_SRC *curParse, *prevParse;
     char source[ASM_LEN];
     int location = -1;
@@ -328,7 +296,8 @@ bool assemblerPass1(FILE* src, FILE* lst) {
     return true;
 }
 
-void assemblerPass2() {}
+void assemblerPass2(FILE* srcFile, FILE* lstFile, FILE* objFile) {
+}
 
 void printASMError(int lineNum, ASM_ERROR errorCode) {
     printf("ERROR: Invalid assembly source:\n");
