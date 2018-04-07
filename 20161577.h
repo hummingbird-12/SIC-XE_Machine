@@ -97,6 +97,8 @@ typedef struct ASM_STRUCT {
     bool indexing;
     int location;
     int operandCnt;
+    int byteSize;
+    int objCode;
     enum { ERROR, INST, PSEUDO, COMMENT } type;
     enum { NONE, format1, format2, format3, format4 } format;
     DIREC_NAME direcName;
