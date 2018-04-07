@@ -166,6 +166,8 @@ void assembleCMD(INPUT_CMD ipcmd) {
         return;
     assemblerPass2(srcFile, NULL, NULL);
 
+    printf("\toutput file : [%s], [%s]\n", lstName, objName);
+
     //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
     //puts("WARNING: Error closing file.");
 }
@@ -291,6 +293,7 @@ bool assemblerPass1(FILE* src) {
         if(source[strlen(source) - 1] == '\n')
             source[strlen(source) - 1] = '\0';
         puts(source);
+        symTableFree();
         return false;
     }
     return true;
