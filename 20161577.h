@@ -89,7 +89,7 @@ typedef struct HASH_STRUCT {
     struct HASH_STRUCT* next;
 } HASH_ENTRY;
 
-typedef struct {
+typedef struct ASM_STRUCT {
     char label[ASM_LEN];
     char inst[ASM_LEN];
     char operand[2][ASM_LEN];
@@ -101,6 +101,7 @@ typedef struct {
     enum { NONE, format1, format2, format3, format4 } format;
     DIREC_NAME direcName;
     ASM_ERROR errorCode;
+    struct ASM_STRUCT* next;
 } ASM_SRC;
     
 // symbol table entry structure
