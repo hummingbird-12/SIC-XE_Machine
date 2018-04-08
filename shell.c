@@ -70,7 +70,8 @@ void quitCMD() {
     puts("Exiting SIC...");
     histFree(); // free history linked list
     hashFree(); // free hash table
-    symTableFree();
+    symTableFree(); // free SYMTAB
+    parseListFree(); // free ASM parse list
     exit(0);
 }
 
