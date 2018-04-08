@@ -22,6 +22,8 @@
 
 SYMBOL_ENTRY* symTable;
 ASM_SRC* parseList = NULL;
+OBJ_CODE* objList = NULL;
+
 char directives[8][6] = {
     "NOTDR",
     "START",
@@ -38,9 +40,12 @@ char registers[7] = {
 
 void assembleCMD(INPUT_CMD);
 ASM_SRC* parseASM(char*);
-bool assemblerPass1(FILE*, int*);
-bool assemblerPass2(FILE*, FILE*, int);
-void printLST(ASM_SRC*, int, bool, bool);
+bool assemblerPass1(FILE*, int*, int*);
+bool assemblerPass2(FILE*, FILE*, int, int);
+void printLST(FILE*, ASM_SRC*, int, bool, bool);
+void printOBJ(FILE*, ASM_SRC*, int, int);
+void printOBJList();
+void addOBJList(unsigned);
 void setError(ASM_SRC*, ASM_ERROR); 
 void printASMError(ASM_SRC*);
 bool isRegister(char);
@@ -139,7 +144,7 @@ int main() {
 void assembleCMD(INPUT_CMD ipcmd) {
     FILE *srcFile, *lstFile, *objFile;
     char lstName[CMD_LEN] = {'\0'}, objName[CMD_LEN] = {'\0'};
-    int maxSrcLen = 0;
+    int maxSrcLen = 0, progLen = 0;
 
     symTableFree();
     parseListFree();
@@ -156,30 +161,29 @@ void assembleCMD(INPUT_CMD ipcmd) {
     strcat(lstName, "lst");
     strcat(objName, "obj");
 
-    //lstFile = fopen(lstName, "w");
-    //objFile = fopen(objName, "w");
+    lstFile = fopen(lstName, "w");
+    objFile = fopen(objName, "w");
 
     if(!lstFile || !objFile) {
-        //puts("ERROR: Problem while creating .list and .obj files.");
+        puts("ERROR: Problem while creating .list and .obj files.");
         if(lstFile) fclose(lstFile);
         if(objFile) fclose(objFile);
-        //return;
+        return;
     }
 
-    puts("--------------- PASS1 ---------------");
-    if(!assemblerPass1(srcFile, &maxSrcLen))
-        return;
-    puts("\n--------------- PASS2 ---------------");
-    if(!assemblerPass2(NULL, NULL, maxSrcLen))
-        return;
+    if(!assemblerPass1(srcFile, &maxSrcLen, &progLen) || !assemblerPass2(lstFile, objFile, maxSrcLen, progLen)) {
+        puts(".lst file and .obj file were not created.");
+        remove(lstName);
+        remove(objName);
+    }
+    else
+        printf("\toutput file : [%s], [%s]\n", lstName, objName);
 
-    printf("\toutput file : [%s], [%s]\n", lstName, objName);
-
-    //if(fclose(fp) || fclose(lstFile) || fclose(objFile))
-    //puts("WARNING: Error closing file.");
+    if(fclose(srcFile) || fclose(lstFile) || fclose(objFile))
+        puts("WARNING: Error closing file.");
 }
 
-bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
+bool assemblerPass1(FILE* srcFile, int* maxSrcLen, int* progLen) {
     ASM_SRC *curParse, *prevParse;
     char source[ASM_LEN];
     int location = -1;
@@ -187,7 +191,7 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
     bool errorFlag = false;
     int mult;
 
-    fgets(source, ASM_LEN, srcFile);
+    //fgets(source, ASM_LEN, srcFile);
     // process ASM source file line by line
     while(fgets(source, ASM_LEN, srcFile) != NULL) {
         // remove '\n' at the end of string
@@ -219,11 +223,8 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
         else if(prevParse)
             prevParse->next = curParse; // link node to list
 
-
         curParse->lineNum = lineNum;
         curParse->location = location;
-
-        printf("%5d\t", curParse->lineNum);
 
         // if current line is NOT a comment
         if(curParse->type != COMMENT) {
@@ -248,20 +249,16 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
                     errorFlag = true;
                     break;
                 case INST:
-                    printf("%04X\t", location);
                     curParse->byteSize = curParse->format;
                     break;
                 case PSEUDO:
                     switch(curParse->direcName) {
                         case START:
-                            printf("%04X\t", location);
                             break;
                         case END:
                         case BASE:
-                            printf("\t");
                             break;
                         case BYTE:
-                            printf("%04X\t", location);
                             switch(curParse->operand[0][0]) {
                                 case 'X':
                                     curParse->byteSize = (strlen(curParse->operand[0]) - 3 + 1) / 2;
@@ -279,15 +276,12 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
                             }
                             break;
                         case WORD:
-                            printf("%04X\t", location);
                             curParse->byteSize = 3;
                             break;
                         case RESB:
-                            printf("%04X\t", location);
                             curParse->byteSize = atoi(curParse->operand[0]);
                             break;
                         case RESW:
-                            printf("%04X\t", location);
                             curParse->byteSize = atoi(curParse->operand[0]) * 3;
                             break;
                         default:
@@ -295,20 +289,14 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
                     }
                     break;
                 case COMMENT:
-                    printf("\t");
                     break;
                 default:
                     break;
             }
         }
-        // if line is a comment
-        else
-            printf("\t");
 
         if(errorFlag)
             break;
-
-        puts(source);
 
         location += curParse->byteSize;
         lineNum += 5;
@@ -318,6 +306,8 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
             break;
     }
 
+    *progLen = location;
+
     if(errorFlag) {
         printASMError(curParse);
         symTableFree();
@@ -326,14 +316,14 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
     return true;
 }
 
-bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
+bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen, int progLen) {
     ASM_SRC *curParse;
     SYMBOL_ENTRY *curSymbol;
     int pcReg, baseReg;
     bool errorFlag = false;
     bool locFlag, objFlag;
     bool nFlag, iFlag, xFlag, bFlag, pFlag, eFlag;
-    int i;
+    int i, firstExec;
 
     curParse = parseList;
     baseReg = 0;
@@ -345,6 +335,11 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
 
         if(curParse->next)
             pcReg = curParse->next->location;
+
+        if(curParse == parseList && curParse->direcName != START) {
+            printf("H%6s%06X%06X\n", " ", 0, progLen);
+            firstExec = curParse->location;
+        }
 
         switch(curParse->type) {
             case INST:
@@ -467,6 +462,8 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                     case START:
                         objFlag = false;
                         baseReg = curParse->location;
+                        firstExec = curParse->location;
+                        printOBJ(objFile, curParse, progLen, firstExec);
                         break;
                     case BASE:
                         locFlag = objFlag = false;
@@ -508,7 +505,8 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                 break;
         }
 
-        printLST(curParse, maxSrcLen, locFlag, objFlag);
+        printOBJ(objFile, curParse, progLen, firstExec);
+        printLST(lstFile, curParse, maxSrcLen, locFlag, objFlag);
         curParse = curParse->next;
     }
 
@@ -521,34 +519,76 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
     return true;
 }
 
-void printLST(ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
+void printLST(FILE* lstFile, ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
     int i;
-    printf("%4d\t", parsedASM->lineNum);
-    (printLOC ? printf("%04X\t", parsedASM->location) : printf("\t"));
+    fprintf(lstFile, "%4d\t", parsedASM->lineNum);
+    (printLOC ? fprintf(lstFile, "%04X\t", parsedASM->location) : fprintf(lstFile, "\t"));
     for(i = 0; parsedASM->source[i]; i++)
-        printf("%c", parsedASM->source[i]);
+        fprintf(lstFile, "%c", parsedASM->source[i]);
     for(;i < maxSrcLen; i++)
-        printf(" ");
+        fprintf(lstFile, " ");
     if(printOBJ) {
-        printf("\t\t");
+        fprintf(lstFile, "\t\t");
         switch(parsedASM->byteSize) {
             case 1:
-                printf("%02X", parsedASM->objCode);
+                fprintf(lstFile, "%02X", parsedASM->objCode);
                 break;
             case 2:
-                printf("%04X", parsedASM->objCode);
+                fprintf(lstFile, "%04X", parsedASM->objCode);
                 break;
             case 3:
-                printf("%06X", parsedASM->objCode);
+                fprintf(lstFile, "%06X", parsedASM->objCode);
                 break;
             case 4:
-                printf("%08X", parsedASM->objCode);
+                fprintf(lstFile, "%08X", parsedASM->objCode);
                 break;
             default:
                 break;
         }
     }
-    puts("");
+    fprintf(lstFile, "\n");
+}
+
+void printOBJ(FILE* objFile, ASM_SRC* parsedASM, int progLen, int firstExec) {
+    static int lineLen = 0;
+    if(parsedASM->direcName == START) {
+        printf("H%6s%6X%6X\n", parsedASM->operand[0], parsedASM->location, progLen);
+        return;
+    }
+    if(parsedASM->direcName == END) {
+        printf("E%6X\n", firstExec);
+        return;
+    }
+    if(lineLen + parsedASM->byteSize > 0x1E || parsedASM->type == PSEUDO) {
+        printf("T%06X%02X", objList->objCode, lineLen);
+        printOBJList();
+        objListFree();
+        lineLen = 0;
+    }
+    addOBJList(parsedASM->objCode);
+    lineLen += parsedASM->byteSize;
+}
+
+void printOBJList() {
+    OBJ_CODE* cur = objList;
+    while(cur) {
+        printf("%06X", cur->objCode);
+        cur = cur->next;
+    }
+}
+
+void addOBJList(unsigned objCode) {
+    OBJ_CODE *newOBJ, *cur = objList;
+    newOBJ = (OBJ_CODE*) malloc(sizeof(OBJ_CODE));
+    newOBJ->objCode = objCode;
+    newOBJ->next = NULL;
+    if(!objList) {
+        objList = newOBJ;
+        return;
+    }
+    while(cur->next)
+        cur = cur->next;
+    cur->next = newOBJ;
 }
 
 void parseListFree() {
@@ -562,18 +602,29 @@ void parseListFree() {
     parseList = NULL;
 }
 
+void objListFree() {
+    OBJ_CODE *cur, *next;
+    cur = objList;
+    while(cur) {
+        next = cur->next;
+        free(cur);
+        cur = next;
+    }
+    objList = NULL;
+}
+
 void printASMError(ASM_SRC* parsedASM) {
-    printf("ERROR: Invalid assembly source:\n");
+    printf("ERROR: Invalid assembly source.\n");
     printf("[Line %d] Error in ", parsedASM->lineNum);
     switch(parsedASM->errorCode) {
         case SYMBOL:
-            puts("symbol field.");
+            puts("symbol field:");
             break;
         case INSTRUCTION:
-            puts("instruction field.");
+            puts("instruction field:");
             break;
         case OPERAND:
-            puts("operand field.");
+            puts("operand field:");
             break;
         default:
             break;
@@ -659,6 +710,12 @@ ASM_SRC* parseASM(char* source) {
                 parseResult->hasLabel = true;
                 strcpy(parseResult->label, tok);
                 tok = strtok(NULL, delim);
+                // missing instruction
+                if(!tok) {
+                    setError(parseResult, INSTRUCTION);
+                    return parseResult;
+                }
+
                 bucket = bucketSearch(tok + (tok[0] == '+' ? 1 : 0) );
 
                 if(!strcmp(tok, ",")) { // comma should not be present
