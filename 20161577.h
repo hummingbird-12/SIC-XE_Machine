@@ -54,7 +54,7 @@ typedef enum {
 } ASM_ERROR;
 
 typedef enum {
-    START, END, BASE, BYTE, WORD, RESB, RESW
+    NOTDR, START, END, BASE, BYTE, WORD, RESB, RESW
 } DIREC_NAME;
 
 // command format structure

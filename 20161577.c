@@ -22,7 +22,8 @@
 
 SYMBOL_ENTRY* symTable;
 ASM_SRC* parseList = NULL;
-char directives[7][6] = {
+char directives[8][6] = {
+    "NOTDR",
     "START",
     "END",
     "BASE",
@@ -193,7 +194,7 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
 
         curParse = parseASM(source); // get parsed line
         // START directive found
-        if(!strcmp(curParse->inst, "START")) {
+        if(curParse->direcName == START) {
             // if START directive appears for the second time
             if(location != -1) {
                 puts("ERROR: START directive appeared twice.");
@@ -229,7 +230,7 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
                 *maxSrcLen = strlen(source);
 
             // if current line has symbol in label field
-            if(curParse->hasLabel && !(curParse->type == PSEUDO && curParse->direcName == START)) {
+            if(curParse->hasLabel && curParse->direcName != START) {
                 // if symbol is already in SYMTAB
                 if(symTableSearch(curParse->label)) {
                     setError(curParse, SYMBOL);
@@ -314,34 +315,60 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
 
 bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
     ASM_SRC *curParse;
-    int PC, BASE;
-    char source[ASM_LEN];
+    int pcReg, baseReg;
     bool errorFlag = false;
     bool locFlag, objFlag;
-    int i;
 
     curParse = parseList;
-    BASE = 0;
-    PC = parseList->location;
+    baseReg = 0;
+    pcReg = parseList->location;
 
     while(curParse) {
         locFlag = objFlag = true;
 
         if(curParse->next)
-            PC = curParse->next->location;
-        if(!strcmp(curParse->inst, "START")) {
-            BASE = curParse->location;
-            objFlag = false;
-        }
-        else if(!strcmp(curParse->inst, "BASE")) {
-            BASE = curParse->location;
-            locFlag = objFlag = false;
-        }
+            pcReg = curParse->next->location;
 
         switch(curParse->type) {
             case INST:
+                switch(curParse->format) {
+                    case format1:
+                        break;
+                    case format2:
+                        break;
+                    case format3:
+                        break;
+                    case format4:
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case PSEUDO:
+                switch(curParse->direcName) {
+                    case START:
+                        objFlag = false;
+                        baseReg = curParse->location;
+                        break;
+                    case BASE:
+                        locFlag = objFlag = false;
+                        baseReg = curParse->location;
+                        break;
+                    case END:
+                        locFlag = objFlag = false;
+                        break;
+                    case BYTE:
+                        break;
+                    case WORD:
+                        curParse->objCode = atoi(curParse->operand[0]);
+                        break;
+                    case RESB:
+                    case RESW:
+                        objFlag = false;
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case COMMENT:
                 locFlag = objFlag = false;
@@ -370,6 +397,7 @@ void printLST(ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
         printf("%c", parsedASM->source[i]);
     for(;i < maxSrcLen; i++)
         printf(" ");
+    printf("\t");
     switch(parsedASM->byteSize) {
         case 1:
             printf("%02X", parsedASM->objCode);
@@ -378,10 +406,10 @@ void printLST(ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
             printf("%04X", parsedASM->objCode);
             break;
         case 3:
-            printf("%04X", parsedASM->objCode);
+            printf("%06X", parsedASM->objCode);
             break;
         case 4:
-            printf("%04X", parsedASM->objCode);
+            printf("%08X", parsedASM->objCode);
             break;
         default:
             break;
@@ -438,6 +466,7 @@ ASM_SRC* parseASM(char* source) {
     parseResult->operandCnt = 0;
     parseResult->byteSize = 0;
     parseResult->objCode = 0;
+    parseResult->direcName = NOTDR;
     parseResult->next = NULL;
 
     j = 0;
@@ -463,7 +492,7 @@ ASM_SRC* parseASM(char* source) {
     }
 
     // look for directives
-    for(i = 0; i < 7; i++)
+    for(i = 1; i < 8; i++)
         if(!strcmp(tok, directives[i])) { // pseudo instruction found
             parseResult->type = PSEUDO;
             parseResult->format = NONE;
@@ -495,7 +524,7 @@ ASM_SRC* parseASM(char* source) {
         }
 
         // look for directives
-        for(i = 0; i < 7; i++)
+        for(i = 1; i < 8; i++)
             if(!strcmp(tok, directives[i])) { // pseudo instruction found
                 parseResult->type = PSEUDO;
                 strcpy(parseResult->inst, tok);
@@ -593,51 +622,7 @@ ASM_SRC* parseASM(char* source) {
                 break;
         }
     }
-    /*
-    // check operand format for pseudo-instructions
-    else if(parseResult->type == PSEUDO) {
-// pseudo-instructions must have only one operand
-if(parseResult->operandCnt != 1) {
-setError(parseResult, OPERAND);
-return parseResult;
-}
-switch(parseResult->operand[0][0]) {
-case '#':
-j = -1;
-case '@':
-if(symTableSearch(parseResult->operand[0] + 1))
-break;
-for(i = 1; parseResult->operand[0][i]; i++)
-if(!(j == -1 ? isdigit(parseResult->operand[0][i]) : isxdigit(parseResult->operand[0][i]))) {
-setError(parseResult, OPERAND);
-return parseResult;
-}
-break;
-case 'X':
-j = -2;
-case 'C':
-for(i = 2; parseResult->operand[0][i + 1]; i++)
-if(!(j == -2 ? isxdigit(parseResult->operand[0][i]) : isdigit(parseResult->operand[0][i]))) {
-setError(parseResult, OPERAND);
-return parseResult;
-}
-if(parseResult->operand[0][0] != '\'' || parseResult->operand[0][i] != '\'') {
-setError(parseResult, OPERAND);
-return parseResult;
-}
-break;
-default:
-if(!symTableSearch(parseResult->operand[0]))
-for(i = 0; parseResult->operand[0][i]; i++)
-if(!isxdigit(parseResult->operand[0][i])) {
-setError(parseResult, OPERAND);
-return parseResult;
-}
-break;
-}
-}
-*/
-return parseResult;
+    return parseResult;
 }
 
 bool isRegister(char reg) {
