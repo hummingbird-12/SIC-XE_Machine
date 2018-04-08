@@ -4,7 +4,7 @@
  *         Department of Computer Science and Engineering        *
  *                                                               *
  * Subject name: System Programming                              *
- * Project title: [1] SIC/XE Machine - The Basics                *
+ * Project title: [2] SIC/XE Machine - The Assembler             *
  *                                                               *
  * Author: Inho Kim                                              *
  * Student ID: 20161577                                          *
@@ -145,4 +145,4 @@ void parseListFree(); // function to free ASM parse list
 void objListFree(); // function to free OBJ code list
 void modListFree(); // function to free Modification Record list
 
-HASH_ENTRY* bucketSearch(char*);                // function to search bucket
+HASH_ENTRY* bucketSearch(char*); // function to search bucket

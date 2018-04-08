@@ -4,7 +4,7 @@
  *         Department of Computer Science and Engineering        *
  *                                                               *
  * Subject name: System Programming                              *
- * Project title: [1] SIC/XE Machine - The Basics                *
+ * Project title: [2] SIC/XE Machine - The Assembler             *
  *                                                               *
  * Author: Inho Kim                                              *
  * Student ID: 20161577                                          *
