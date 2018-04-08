@@ -138,10 +138,11 @@ int main() {
 
 void assembleCMD(INPUT_CMD ipcmd) {
     FILE *srcFile, *lstFile, *objFile;
-    char lstName[CMD_LEN], objName[CMD_LEN];
+    char lstName[CMD_LEN] = {'\0'}, objName[CMD_LEN] = {'\0'};
     int maxSrcLen = 0;
 
     symTableFree();
+    parseListFree();
 
     lstFile = objFile = NULL;
     srcFile = fopen(ipcmd.arg[0], "r");
@@ -151,8 +152,8 @@ void assembleCMD(INPUT_CMD ipcmd) {
     }
 
     strncpy(lstName, ipcmd.arg[0], strlen(ipcmd.arg[0]) - 3);
-    strcat(lstName, "lst");
     strncpy(objName, ipcmd.arg[0], strlen(ipcmd.arg[0]) - 3);
+    strcat(lstName, "lst");
     strcat(objName, "obj");
 
     //lstFile = fopen(lstName, "w");
@@ -333,7 +334,6 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
     bool locFlag, objFlag;
     bool nFlag, iFlag, xFlag, bFlag, pFlag, eFlag;
     int i;
-    unsigned mult;
 
     curParse = parseList;
     baseReg = 0;
@@ -390,23 +390,50 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                             curParse->objCode *= INC_BYTE * INC_BYTE;
                             break;
                         }
+                        // indexing mode
                         if(curParse->indexing)
                             xFlag = true;
+                        // immediate addressing
                         if(curParse->operand[0][0] == '#')
                             nFlag = false;
+                        // indirect addressing
                         else if(curParse->operand[0][0] == '@')
                             iFlag = false;
-                        if((curSymbol = symTableSearch(curParse->operand[0] + (!nFlag ? 1 : 0)))) {
-                            if(pcReg - curSymbol->address + HALF_MAXDISP >= 0) {
-                                curParse->objCode += (!nFlag ? 1 : 3);
+
+                        // if there is a symbol in operand
+                        if((curSymbol = symTableSearch(curParse->operand[0] + ((!nFlag || !iFlag) ? 1 : 0)))) {
+                            // if pc relative addressing is possible
+                            if(curSymbol->address - pcReg + MAX12DISP / 2 >= 0) {
+                                curParse->objCode += (!nFlag ? 1 : (!iFlag ? 2  : 3));
                                 curParse->objCode *= INC_HBYTE;
                                 curParse->objCode += (xFlag ? 10 : 2);
                                 curParse->objCode *= INC_BYTE * INC_HBYTE;
-                                curParse->objCode += (curSymbol->address - pcReg) & (15 * INC_BYTE + 15 * INC_HBYTE + 15);
+                                curParse->objCode += (curSymbol->address - pcReg) & 0xFFF;
+                            }
+                            // if base relative addressing is possible
+                            else if(curSymbol->address - baseReg < MAX12DISP) {
+                                curParse->objCode += (!nFlag ? 1 : (!iFlag ? 2  : 3));
+                                curParse->objCode *= INC_HBYTE;
+                                curParse->objCode += (xFlag ? 12 : 4);
+                                curParse->objCode *= INC_BYTE * INC_HBYTE;
+                                curParse->objCode += (curSymbol->address - baseReg) & 0xFFF;
+                            }
+                            // approach as SIC instruction
+                            else if(curSymbol->address < MAX15ADDR){
+                                curParse->objCode *= INC_HBYTE;
+                                curParse->objCode += (xFlag ? 8 : 0);
+                                curParse->objCode *= INC_BYTE * INC_HBYTE;
+                                curParse->objCode += curSymbol->address;
+                            }
+                            // NOT able to make reference
+                            else {
+                                setError(curParse, INSTRUCTION);
+                                return false;
                             }
                         }
-                        else if(pcReg - atoi(curParse->operand[0] + 1) + HALF_MAXDISP >= 0) {
-                            curParse->objCode += 1;
+                        // if there is a value in operand
+                        else if(pcReg - atoi(curParse->operand[0] + 1) + MAX12DISP / 2 >= 0) {
+                            curParse->objCode += (!nFlag ? 1 : 2);
                             curParse->objCode *= INC_HBYTE;
                             curParse->objCode += 0;
                             curParse->objCode *= INC_BYTE * INC_HBYTE;
@@ -415,6 +442,21 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                         break;
                     case format4:
                         eFlag = true;
+                        curSymbol = symTableSearch(curParse->operand[0] + (!isalnum(curParse->operand[0][0]) ? 1 : 0));
+                        if(curSymbol) {
+                            curParse->objCode += 3;
+                            curParse->objCode *= INC_HBYTE;
+                            curParse->objCode += 1;
+                            curParse->objCode *= INC_BYTE * INC_BYTE * INC_HBYTE;
+                            curParse->objCode += curSymbol->address & 0xFFFFF;
+                        }
+                        else {
+                            curParse->objCode += 1;
+                            curParse->objCode *= INC_HBYTE;
+                            curParse->objCode += 1;
+                            curParse->objCode *= INC_BYTE * INC_BYTE * INC_HBYTE;
+                            curParse->objCode += atoi(curParse->operand[0] + 1) & 0xFFFFF;
+                        }
                         break;
                     default:
                         break;
@@ -428,13 +470,12 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                         break;
                     case BASE:
                         locFlag = objFlag = false;
-                        baseReg = curParse->location;
+                        baseReg = symTableSearch(curParse->operand[0])->address;
                         break;
                     case END:
                         locFlag = objFlag = false;
                         break;
                     case BYTE:
-                        mult = pow(16, curParse->byteSize - 1);
                         switch(curParse->operand[0][0]) {
                             case 'C':
                                 for(i = 2; curParse->operand[0][i] != '\''; i++) {
@@ -488,24 +529,37 @@ void printLST(ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
         printf("%c", parsedASM->source[i]);
     for(;i < maxSrcLen; i++)
         printf(" ");
-    printf("\t");
-    switch(parsedASM->byteSize) {
-        case 1:
-            printf("%02X", parsedASM->objCode);
-            break;
-        case 2:
-            printf("%04X", parsedASM->objCode);
-            break;
-        case 3:
-            printf("%06X", parsedASM->objCode);
-            break;
-        case 4:
-            printf("%08X", parsedASM->objCode);
-            break;
-        default:
-            break;
+    if(printOBJ) {
+        printf("\t\t");
+        switch(parsedASM->byteSize) {
+            case 1:
+                printf("%02X", parsedASM->objCode);
+                break;
+            case 2:
+                printf("%04X", parsedASM->objCode);
+                break;
+            case 3:
+                printf("%06X", parsedASM->objCode);
+                break;
+            case 4:
+                printf("%08X", parsedASM->objCode);
+                break;
+            default:
+                break;
+        }
     }
     puts("");
+}
+
+void parseListFree() {
+    ASM_SRC *cur, *next;
+    cur = parseList;
+    while(cur) {
+        next = cur->next;
+        free(cur);
+        cur = next;
+    }
+    parseList = NULL;
 }
 
 void printASMError(ASM_SRC* parsedASM) {

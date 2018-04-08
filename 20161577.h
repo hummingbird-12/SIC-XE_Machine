@@ -31,7 +31,8 @@
 #define ASM_LEN 121          // maximum length of single asm source line
 #define INC_BYTE 16 * 16
 #define INC_HBYTE 16
-#define HALF_MAXDISP 2048
+#define MAX12DISP 4096
+#define MAX15ADDR 32768
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
@@ -125,5 +126,6 @@ typedef struct SYMBOL_STRUCT {
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
 void symTableFree(); // function to free SYMTAB
+void parseListFree(); // function to free ASM parse list
 
 HASH_ENTRY* bucketSearch(char*);                // function to search bucket
