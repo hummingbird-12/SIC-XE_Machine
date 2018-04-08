@@ -126,13 +126,23 @@ typedef struct SYMBOL_STRUCT {
 // Object Code list structure
 typedef struct OBJ_STRUCT {
     unsigned objCode;
+    int location;
+    int byteSize;
     struct OBJ_STRUCT* next;
 } OBJ_CODE;
+
+// Modification Record list structure
+typedef struct MOD_STRUCT {
+    int location;
+    int lenHB;
+    struct MOD_STRUCT* next;
+} MOD_RECORD;
 
 int hexToDec(char*); // function to check for vaild hex value and return converted decimal value
 void hashFree();     // function to free hash table memory allocation
 void symTableFree(); // function to free SYMTAB
 void parseListFree(); // function to free ASM parse list
 void objListFree(); // function to free OBJ code list
+void modListFree(); // function to free Modification Record list
 
 HASH_ENTRY* bucketSearch(char*);                // function to search bucket
