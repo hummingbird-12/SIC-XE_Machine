@@ -29,6 +29,9 @@
 #define MEM_SIZE 1048576    // 2^20 = 1MB
 #define HASH_SIZE 20        // hash table size
 #define ASM_LEN 121          // maximum length of single asm source line
+#define INC_BYTE 16 * 16
+#define INC_HBYTE 16
+#define HALF_MAXDISP 2048
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
@@ -56,6 +59,10 @@ typedef enum {
 typedef enum {
     NOTDR, START, END, BASE, BYTE, WORD, RESB, RESW
 } DIREC_NAME;
+
+typedef enum {
+    A, X, L, B, S, T, F
+} REG_NAME;
 
 // command format structure
 typedef struct {

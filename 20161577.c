@@ -46,7 +46,7 @@ void printASMError(ASM_SRC*);
 bool isRegister(char);
 void symbolCMD();
 void symTableAdd(char*, int);
-bool symTableSearch(char*);
+SYMBOL_ENTRY* symTableSearch(char*);
 
 int main() {
     char inp[CMD_LEN];  // input string
@@ -184,6 +184,7 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
     int location = -1;
     int lineNum = 5;
     bool errorFlag = false;
+    int mult;
 
     fgets(source, ASM_LEN, srcFile);
     // process ASM source file line by line
@@ -260,10 +261,21 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
                             break;
                         case BYTE:
                             printf("%04X\t", location);
-                            if(curParse->operand[0][0] == 'X')
-                                curParse->byteSize = (strlen(curParse->operand[0]) - 3 + 1) / 2;
-                            else if(curParse->operand[0][0] == 'C')
-                                curParse->byteSize = strlen(curParse->operand[0]) - 3;
+                            switch(curParse->operand[0][0]) {
+                                case 'X':
+                                    curParse->byteSize = (strlen(curParse->operand[0]) - 3 + 1) / 2;
+                                    break;
+                                case 'C':
+                                    curParse->byteSize = strlen(curParse->operand[0]) - 3;
+                                    break;
+                                default:
+                                    mult = INC_BYTE;
+                                    for(curParse->byteSize = 1;
+                                            mult <= atoi(curParse->operand[0]);
+                                            mult *= INC_BYTE)
+                                        curParse->byteSize++;
+                                    break;
+                            }
                             break;
                         case WORD:
                             printf("%04X\t", location);
@@ -300,7 +312,7 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
         location += curParse->byteSize;
         lineNum += 5;
         prevParse = curParse;
-        
+
         if(!strcmp(curParse->inst, "END"))
             break;
     }
@@ -315,9 +327,13 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
 
 bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
     ASM_SRC *curParse;
+    SYMBOL_ENTRY *curSymbol;
     int pcReg, baseReg;
     bool errorFlag = false;
     bool locFlag, objFlag;
+    bool nFlag, iFlag, xFlag, bFlag, pFlag, eFlag;
+    int i;
+    unsigned mult;
 
     curParse = parseList;
     baseReg = 0;
@@ -325,20 +341,80 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
 
     while(curParse) {
         locFlag = objFlag = true;
+        curSymbol = NULL;
 
         if(curParse->next)
             pcReg = curParse->next->location;
 
         switch(curParse->type) {
             case INST:
+                nFlag = iFlag = true;
+                xFlag = bFlag = pFlag = eFlag = false;
+                curParse->objCode = bucketSearch(curParse->inst + (curParse->inst[0] == '+' ? 1 : 0) )->codeVal;
                 switch(curParse->format) {
                     case format1:
                         break;
                     case format2:
+                        for(i = 0; i < 2; i++) {
+                            curParse->objCode *= 16;
+                            switch(curParse->operand[i][0]) {
+                                case 'A':
+                                    curParse->objCode += 0;
+                                    break;
+                                case 'X':
+                                    curParse->objCode += 1;
+                                    break;
+                                case 'L':
+                                    curParse->objCode += 2;
+                                    break;
+                                case 'B':
+                                    curParse->objCode += 3;
+                                    break;
+                                case 'S':
+                                    curParse->objCode += 4;
+                                    break;
+                                case 'T':
+                                    curParse->objCode += 5;
+                                    break;
+                                case 'F':
+                                    curParse->objCode += 6;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
                         break;
                     case format3:
+                        if(!curParse->operandCnt) {
+                            curParse->objCode += 3;
+                            curParse->objCode *= INC_BYTE * INC_BYTE;
+                            break;
+                        }
+                        if(curParse->indexing)
+                            xFlag = true;
+                        if(curParse->operand[0][0] == '#')
+                            nFlag = false;
+                        else if(curParse->operand[0][0] == '@')
+                            iFlag = false;
+                        if((curSymbol = symTableSearch(curParse->operand[0] + (!nFlag ? 1 : 0)))) {
+                            if(pcReg - curSymbol->address + HALF_MAXDISP >= 0) {
+                                curParse->objCode += (!nFlag ? 1 : 3);
+                                curParse->objCode *= INC_HBYTE;
+                                curParse->objCode += (xFlag ? 10 : 2);
+                                curParse->objCode *= INC_BYTE * INC_HBYTE;
+                                curParse->objCode += (curSymbol->address - pcReg) & (15 * INC_BYTE + 15 * INC_HBYTE + 15);
+                            }
+                        }
+                        else if(pcReg - atoi(curParse->operand[0] + 1) + HALF_MAXDISP >= 0) {
+                            curParse->objCode += 1;
+                            curParse->objCode *= INC_HBYTE;
+                            curParse->objCode += 0;
+                            curParse->objCode *= INC_BYTE * INC_HBYTE;
+                            curParse->objCode += atoi(curParse->operand[0] + 1);
+                        }
                         break;
                     case format4:
+                        eFlag = true;
                         break;
                     default:
                         break;
@@ -358,6 +434,21 @@ bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
                         locFlag = objFlag = false;
                         break;
                     case BYTE:
+                        mult = pow(16, curParse->byteSize - 1);
+                        switch(curParse->operand[0][0]) {
+                            case 'C':
+                                for(i = 2; curParse->operand[0][i] != '\''; i++) {
+                                    curParse->objCode *= INC_BYTE;
+                                    curParse->objCode += curParse->operand[0][i];
+                                }
+                                break;
+                            case 'X':
+                                curParse->objCode += strtol(curParse->operand[0] + 2, NULL, 16);
+                                break;
+                            default:
+                                curParse->objCode = atoi(curParse->operand[0]);
+                                break;
+                        }
                         break;
                     case WORD:
                         curParse->objCode = atoi(curParse->operand[0]);
@@ -455,7 +546,7 @@ ASM_SRC* parseASM(char* source) {
     char *tok;
     int i, j;
     ASM_SRC* parseResult;
-    HASH_ENTRY* bucket;
+    HASH_ENTRY* bucket = NULL;
 
     parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
     strcpy(parseResult->source, source);
@@ -616,7 +707,8 @@ ASM_SRC* parseASM(char* source) {
                     setError(parseResult, OPERAND);
                     return parseResult;
                 }
-                parseResult->indexing = true;
+                if(strlen(parseResult->operand[1]))
+                    parseResult->indexing = true;
                 break;
             default:
                 break;
@@ -661,14 +753,14 @@ void symTableAdd(char* symbol, int address) {
     cur->next = newEntry;
 }
 
-bool symTableSearch(char* symbol) {
+SYMBOL_ENTRY* symTableSearch(char* symbol) {
     SYMBOL_ENTRY* cur = symTable;
     while(cur) {
         if(!strcmp(symbol, cur->symbol))
-            return true;
+            return cur;
         cur = cur->next;
     }
-    return false;
+    return NULL;
 }
 
 void symTableFree() {
