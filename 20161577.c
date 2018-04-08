@@ -38,10 +38,10 @@ char registers[7] = {
 void assembleCMD(INPUT_CMD);
 ASM_SRC* parseASM(char*);
 bool assemblerPass1(FILE*, int*);
-bool assemblerPass2(FILE*, FILE*, FILE*, int);
-void printLST(int, int, char*, int, int, bool, bool, int);
+bool assemblerPass2(FILE*, FILE*, int);
+void printLST(ASM_SRC*, int, bool, bool);
 void setError(ASM_SRC*, ASM_ERROR); 
-void printASMError(int, ASM_ERROR);
+void printASMError(ASM_SRC*);
 bool isRegister(char);
 void symbolCMD();
 void symTableAdd(char*, int);
@@ -168,7 +168,7 @@ void assembleCMD(INPUT_CMD ipcmd) {
     if(!assemblerPass1(srcFile, &maxSrcLen))
         return;
     puts("\n--------------- PASS2 ---------------");
-    if(!assemblerPass2(srcFile, NULL, NULL, maxSrcLen))
+    if(!assemblerPass2(NULL, NULL, maxSrcLen))
         return;
 
     printf("\toutput file : [%s], [%s]\n", lstName, objName);
@@ -187,6 +187,10 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
     fgets(source, ASM_LEN, srcFile);
     // process ASM source file line by line
     while(fgets(source, ASM_LEN, srcFile) != NULL) {
+        // remove '\n' at the end of string
+        if(source[strlen(source) - 1] == '\n')
+            source[strlen(source) - 1] = '\0';
+
         curParse = parseASM(source); // get parsed line
         // START directive found
         if(!strcmp(curParse->inst, "START")) {
@@ -212,9 +216,11 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
         else if(prevParse)
             prevParse->next = curParse; // link node to list
 
-        printf("%5d\t", lineNum);
 
+        curParse->lineNum = lineNum;
         curParse->location = location;
+
+        printf("%5d\t", curParse->lineNum);
 
         // if current line is NOT a comment
         if(curParse->type != COMMENT) {
@@ -288,8 +294,6 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
         if(errorFlag)
             break;
 
-        if(source[strlen(source) - 1] == '\n')
-            source[strlen(source) - 1] = '\0';
         puts(source);
 
         location += curParse->byteSize;
@@ -301,31 +305,37 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen) {
     }
 
     if(errorFlag) {
-        printASMError(lineNum, curParse->errorCode);
-        if(source[strlen(source) - 1] == '\n')
-            source[strlen(source) - 1] = '\0';
-        puts(source);
+        printASMError(curParse);
         symTableFree();
         return false;
     }
     return true;
 }
 
-bool assemblerPass2(FILE* srcFile, FILE* lstFile, FILE* objFile, int maxSrcLen) {
+bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen) {
     ASM_SRC *curParse;
+    int PC, BASE;
     char source[ASM_LEN];
     bool errorFlag = false;
-    int lineNum = 5, i;
+    bool locFlag, objFlag;
+    int i;
 
     curParse = parseList;
+    BASE = 0;
+    PC = parseList->location;
 
     while(curParse) {
-        fgets(source, ASM_LEN, srcFile);
+        locFlag = objFlag = true;
+
+        if(curParse->next)
+            PC = curParse->next->location;
         if(!strcmp(curParse->inst, "START")) {
-            printLST(lineNum, curParse->location, source, 0, maxSrcLen, true, false, 0);
-            lineNum += 5;
-            curParse = curParse->next;
-            continue;
+            BASE = curParse->location;
+            objFlag = false;
+        }
+        else if(!strcmp(curParse->inst, "BASE")) {
+            BASE = curParse->location;
+            locFlag = objFlag = false;
         }
 
         switch(curParse->type) {
@@ -333,45 +343,45 @@ bool assemblerPass2(FILE* srcFile, FILE* lstFile, FILE* objFile, int maxSrcLen) 
                 break;
             case PSEUDO:
                 break;
+            case COMMENT:
+                locFlag = objFlag = false;
             default:
                 break;
         }
 
-        lineNum += 5;
+        printLST(curParse, maxSrcLen, locFlag, objFlag);
         curParse = curParse->next;
     }
 
     if(errorFlag) {
-        printASMError(lineNum, curParse->errorCode);
-        if(source[strlen(source) - 1] == '\n')
-            source[strlen(source) - 1] = '\0';
-        puts(source);
+        printASMError(curParse);
         symTableFree();
         return false;
     }
+
     return true;
 }
 
-void printLST(int line, int loc, char* source, int obj, int maxSrcLen, bool printLOC, bool printOBJ, int byteSize) {
+void printLST(ASM_SRC* parsedASM, int maxSrcLen, bool printLOC, bool printOBJ) {
     int i;
-    printf("%4d\t", line);
-    (printLOC ? printf("%04X\t", loc) : printf("\t"));
-    for(i = 0; source[i] && source[i] != '\n'; i++)
-        printf("%c", source[i]);
+    printf("%4d\t", parsedASM->lineNum);
+    (printLOC ? printf("%04X\t", parsedASM->location) : printf("\t"));
+    for(i = 0; parsedASM->source[i]; i++)
+        printf("%c", parsedASM->source[i]);
     for(;i < maxSrcLen; i++)
         printf(" ");
-    switch(byteSize) {
+    switch(parsedASM->byteSize) {
         case 1:
-            printf("%02X", obj);
+            printf("%02X", parsedASM->objCode);
             break;
         case 2:
-            printf("%04X", obj);
+            printf("%04X", parsedASM->objCode);
             break;
         case 3:
-            printf("%06X", obj);
+            printf("%04X", parsedASM->objCode);
             break;
         case 4:
-            printf("%08X", obj);
+            printf("%04X", parsedASM->objCode);
             break;
         default:
             break;
@@ -379,10 +389,10 @@ void printLST(int line, int loc, char* source, int obj, int maxSrcLen, bool prin
     puts("");
 }
 
-void printASMError(int lineNum, ASM_ERROR errorCode) {
+void printASMError(ASM_SRC* parsedASM) {
     printf("ERROR: Invalid assembly source:\n");
-    printf("[Line %d] Error in ", lineNum);
-    switch(errorCode) {
+    printf("[Line %d] Error in ", parsedASM->lineNum);
+    switch(parsedASM->errorCode) {
         case SYMBOL:
             puts("symbol field.");
             break;
@@ -395,6 +405,7 @@ void printASMError(int lineNum, ASM_ERROR errorCode) {
         default:
             break;
     }
+    puts(parsedASM->source);
 }
 
 void symbolCMD() {
@@ -419,6 +430,7 @@ ASM_SRC* parseASM(char* source) {
     HASH_ENTRY* bucket;
 
     parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
+    strcpy(parseResult->source, source);
     parseResult->hasLabel = false;
     parseResult->type = INST;
     parseResult->errorCode = OK;

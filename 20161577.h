@@ -90,15 +90,17 @@ typedef struct HASH_STRUCT {
 } HASH_ENTRY;
 
 typedef struct ASM_STRUCT {
+    char source[ASM_LEN];
     char label[ASM_LEN];
     char inst[ASM_LEN];
     char operand[2][ASM_LEN];
     bool hasLabel;
     bool indexing;
+    int lineNum;
     int location;
     int operandCnt;
     int byteSize;
-    int objCode;
+    unsigned objCode;
     enum { ERROR, INST, PSEUDO, COMMENT } type;
     enum { NONE, format1, format2, format3, format4 } format;
     DIREC_NAME direcName;
