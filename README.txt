@@ -7,7 +7,7 @@
 - 6 *.c source code files   (20161577.c, cmdProc.c, shell.c, memory.c, hash.c, assembler.c)
 - Makefile
 - Document.docx
-- README
+- README.txt
 - opcode.txt
 - 2_5.asm
 
