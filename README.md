@@ -1,12 +1,10 @@
-# Proj1_SIC_Shell
+# SIC/XE Machine
 
 ## Description
 
-This is the first project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
+This is a series of projects for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
 
-It is a simple shell system made with C.
-
-You may play around with different commands available, have a look at how memory is managed by a system and learn about simple opcodes.
+The result is a implementation of SIC/XE Machine with features such as shell environment, assembler, loader and linker.
 
 
 ## Specification
@@ -26,11 +24,17 @@ You may play around with different commands available, have a look at how memory
 - reset : set whole memory to 0x00.
 - opcode mnemonic : lookup for the code of the opcode mnemonic.
 - opcodelist : show opcode list stored in hash table.
+- assemble filename : assemble specified source file to create list file and object file.
+- type filename : print the content of a file on screen.
+- symbol : show the symbol table of the latest successfully assembled file.
 
 
-## Other information
+## Features
 
-This system will further be improved with more features such as assembler, etc.
+- [ OK ] Shell environment
+- [ OK ] Assembler
+- Linker
+- Loader
 
 
 ## About the Developer
