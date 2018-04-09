@@ -1,15 +1,15 @@
-< Proj2 - SIC/XE Assembler >
+< Project 2 - SIC/XE Assembler >
 
 0. How to execute program
 
 * After unzipping, there should be:
 - 6 *.h header files        (20161577.h, cmdProc.h, shell.h, memory.h, hash.h, assembler.h)
 - 6 *.c source code files   (20161577.c, cmdProc.c, shell.c, memory.c, hash.c, assembler.c)
+- Makefile
+- Document.docx
+- README
 - opcode.txt
 - 2_5.asm
-- Document.docx
-- Makefile
-- README
 
 * Then, type the following to execute program:
 $ make
@@ -22,7 +22,8 @@ $ make clean
 1. Description
 
 This is the second project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
-The SIC/XE Machine Assembler is added to the first project.
+The implementation of the SIC/XE Machine Assembler is added to the shell environment created in first project.
+
 
 2. Specification
 
@@ -48,7 +49,7 @@ The SIC/XE Machine Assembler is added to the first project.
 
 4. Other information
 
-This system will further be improved with more features such as loader and linker.
+This system will be further improved with more features such as loader and linker.
 
 
 5. About the Developer
