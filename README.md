@@ -12,6 +12,14 @@ The result is a implementation of SIC/XE Machine with features such as shell env
 - Allocated virtual memory: 1 MB
 
 
+## Features
+
+- [ OK ] Shell environment
+- [ OK ] Assembler
+- Linker
+- Loader
+
+
 ## Allowed Commands
 
 - h[elp] : show list and format of commands.
@@ -27,14 +35,6 @@ The result is a implementation of SIC/XE Machine with features such as shell env
 - assemble filename : assemble specified source file to create list file and object file.
 - type filename : print the content of a file on screen.
 - symbol : show the symbol table of the latest successfully assembled file.
-
-
-## Features
-
-- [ OK ] Shell environment
-- [ OK ] Assembler
-- Linker
-- Loader
 
 
 ## About the Developer
