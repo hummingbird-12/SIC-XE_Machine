@@ -16,6 +16,8 @@ The result is a implementation of SIC/XE Machine with features such as shell env
 
 - [ OK ] Shell environment
 - [ OK ] Assembler
+- [ OK ] Modification record (Relocation)
+- Program Blocks
 - Linker
 - Loader
 
