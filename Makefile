@@ -21,5 +21,7 @@ assembler.o: 20161577.h assembler.c
 	gcc -Wall -c -o assembler.o assembler.c -lm
 
 clean:
-	rm *.o
-	rm 20161577.out
+	-rm *.o
+	-rm *.lst
+	-rm *.obj
+	-rm 20161577.out
