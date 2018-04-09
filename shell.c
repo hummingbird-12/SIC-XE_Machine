@@ -68,10 +68,12 @@ void dirCMD() {
 
 void quitCMD() {
     puts("Exiting SIC...");
-    histFree(); // free history linked list
-    hashFree(); // free hash table
-    symTableFree(); // free SYMTAB
-    parseListFree(); // free ASM parse list
+    histFree();         // free history linked list
+    hashFree();         // free hash table
+    symTableFree();     // free SYMTAB
+    parseListFree();    // free ASM parse list
+    objListFree();      // free object code list
+    modListFree();      // free modification record list
     exit(0);
 }
 

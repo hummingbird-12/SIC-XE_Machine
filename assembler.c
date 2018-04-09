@@ -68,6 +68,7 @@ bool assembleCMD(INPUT_CMD ipcmd) {
 
     if(!lstFile || !objFile) {
         puts("ERROR: Problem while creating .list and .obj files.");
+        fclose(srcFile);
         if(lstFile) fclose(lstFile);
         if(objFile) fclose(objFile);
         return false;
@@ -78,6 +79,7 @@ bool assembleCMD(INPUT_CMD ipcmd) {
         puts(".lst file and .obj file were not created.");
         remove(lstName);
         remove(objName);
+        fclose(srcFile);
         if(lstFile) fclose(lstFile);
         if(objFile) fclose(objFile);
         return false;
@@ -85,7 +87,11 @@ bool assembleCMD(INPUT_CMD ipcmd) {
     else
         printf("\toutput file : [%s], [%s]\n", lstName, objName);
 
-    if(fclose(srcFile) || fclose(lstFile) || fclose(objFile))
+    if(fclose(srcFile))
+        puts("WARNING: Error closing file.");
+    if(fclose(lstFile))
+        puts("WARNING: Error closing file.");
+    if(fclose(objFile))
         puts("WARNING: Error closing file.");
     return true;
 }
@@ -228,8 +234,8 @@ bool assemblerPass1(FILE* srcFile, int* maxSrcLen, int* progLen) {
 
 // Pass2 of Assembler
 bool assemblerPass2(FILE* lstFile, FILE* objFile, int maxSrcLen, int progLen) {
-    ASM_SRC *curParse;
-    SYMBOL_ENTRY *curSymbol;
+    ASM_SRC *curParse = NULL;
+    SYMBOL_ENTRY *curSymbol = NULL;
     int pcReg, baseReg;
     bool errorFlag = false;
     bool locFlag, objFlag;
@@ -656,22 +662,26 @@ void symbolCMD() {
 ASM_SRC* parseASM(char* source) {
     char delim[] = " \t\n";
     char tmp[ASM_LEN] = {'\0'};
-    char *tok;
+    char *tok = NULL;
     int i, j;
-    ASM_SRC* parseResult;
+    ASM_SRC* parseResult = NULL;
     HASH_ENTRY* bucket = NULL;
 
     // initialize parse structure
     parseResult = (ASM_SRC*) malloc(sizeof(ASM_SRC));
     strcpy(parseResult->source, source);
+    memset(parseResult->label, '\0', ASM_LEN);
+    memset(parseResult->inst, '\0', ASM_LEN);
+    memset(parseResult->operand[0], '\0', ASM_LEN);
+    memset(parseResult->operand[1], '\0', ASM_LEN);
     parseResult->hasLabel = false;
-    parseResult->type = INST;
-    parseResult->errorCode = OK;
     parseResult->indexing = false;
     parseResult->operandCnt = 0;
     parseResult->byteSize = 0;
     parseResult->objCode = 0;
+    parseResult->type = INST;
     parseResult->direcName = NOTDR;
+    parseResult->errorCode = OK;
     parseResult->next = NULL;
 
     // add space front and back of commas
@@ -838,6 +848,7 @@ ASM_SRC* parseASM(char* source) {
     return parseResult;
 }
 
+// check for register name
 bool isRegister(char reg) {
     int i;
     for(i = 0; i < 7; i++)
@@ -846,12 +857,14 @@ bool isRegister(char reg) {
     return false;
 }
 
+// set information about error in node
 void setError(ASM_SRC* parsedResult, ASM_ERROR error) {
     parsedResult->type = ERROR;
     parsedResult->format = NONE;
     parsedResult->errorCode = error;
 }
 
+// add new symbol to SYMTAB
 void symTableAdd(char* symbol, int address) {
     SYMBOL_ENTRY* cur = symTable;
     SYMBOL_ENTRY* newEntry = (SYMBOL_ENTRY*) malloc(sizeof(SYMBOL_ENTRY));
@@ -870,6 +883,7 @@ void symTableAdd(char* symbol, int address) {
         symTable = newEntry;
         return;
     }
+    // while next symbol is bigger in alphabetical order
     while(cur->next && strcmp(cur->next->symbol, symbol) > 0)
         cur = cur->next;
     newEntry->next = cur->next;
