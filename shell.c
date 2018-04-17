@@ -17,8 +17,6 @@
 #include "20161577.h"
 #include "shell.h"
 
-HIST_NODE* histHead = NULL; // head of history linked list
-
 void helpCMD() {
     printf("h[elp]\n"
             "d[ir]\n"

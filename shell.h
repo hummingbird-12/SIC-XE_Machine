@@ -22,3 +22,5 @@ void typeCMD(INPUT_CMD); // COMMAND: type
 
 void histAdd(char*);    // function to add input command into history
 void histFree();        // function to free history linked list
+
+HIST_NODE* histHead; // head of history linked list
