@@ -84,6 +84,14 @@ typedef struct {
     char arg[ARG_MAX][10];
 } INPUT_CMD;
 
+// structure for generic linked list
+typedef struct NODE {
+    void* data;
+    struct NODE* next;
+} Node;
+
+typedef Node* LinkedList;
+
 // history node structure
 typedef struct HIST_STRUCT {
     char str[CMD_LEN];
