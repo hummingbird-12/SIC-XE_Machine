@@ -32,7 +32,11 @@ void helpCMD() {
             "opcodelist\n"
             "assemble filename\n"
             "type filename\n"
-            "symbol\n");
+            "symbol\n"
+            "progaddr [address]\n"
+            "loader [object filename1] [object filename2] [...]\n"
+            "run\n"
+            "bp [address]\n");
 }
 
 void dirCMD() {
