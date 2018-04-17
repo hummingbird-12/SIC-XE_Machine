@@ -21,5 +21,3 @@ void histCMD(); // COMMAND: history
 void typeCMD(INPUT_CMD); // COMMAND: type
 
 void histAdd(char*);    // function to add input command into history
-
-LIST histList;
