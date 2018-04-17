@@ -20,6 +20,7 @@ void freeList(LIST* listHead) {
     NODE* next = NULL;
     while(cur) {
         next = cur->next;
+        free(cur->data);
         free(cur);
         cur = next;
     }
@@ -38,4 +39,10 @@ void printHistory(void* data) {
     static int index = 1;
     printf("%-3d  ", index++);
     puts(((HIST_NODE*)data)->str);
+}
+
+void printOpList(void* data) {
+    printf("[%s,%s]", ((HASH_ENTRY*)data)->inst, ((HASH_ENTRY*)data)->code);
+    if(((HASH_ENTRY*)data)->next)
+        printf(" -> ");
 }
