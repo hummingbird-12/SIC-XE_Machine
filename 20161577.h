@@ -88,14 +88,13 @@ typedef struct {
 typedef struct NODE {
     void* data;
     struct NODE* next;
-} Node;
+} NODE;
 
-typedef Node* LinkedList;
+typedef NODE* LIST;
 
 // history node structure
 typedef struct HIST_STRUCT {
     char str[CMD_LEN];
-    struct HIST_STRUCT* next;
 } HIST_NODE;
 
 // hash table bucket structure

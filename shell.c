@@ -15,6 +15,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "20161577.h"
+#include "linkedList.h"
 #include "shell.h"
 
 void helpCMD() {
@@ -70,7 +71,7 @@ void dirCMD() {
 
 void quitCMD() {
     puts("Exiting SIC...");
-    histFree();         // free history linked list
+    freeList(&histList); // free history linked list
     hashFree();         // free hash table
     symTableFree();     // free SYMTAB
     parseListFree();    // free ASM parse list
@@ -80,14 +81,7 @@ void quitCMD() {
 }
 
 void histCMD() {
-    HIST_NODE* cur = histHead;
-    int cnt = 1;
-
-    while(cur) {
-        printf("%-3d  ", cnt++);
-        puts(cur->str); // print command in history
-        cur = cur->next;
-    }
+    printList(histList, printHistory);
 }
 
 void typeCMD(INPUT_CMD ipcmd) {
@@ -106,27 +100,7 @@ void typeCMD(INPUT_CMD ipcmd) {
 }
 
 void histAdd(char* str) {
-    HIST_NODE* cur = histHead;
-    HIST_NODE* newHist = (HIST_NODE*) malloc(sizeof(HIST_NODE));
-    strcpy(newHist->str, str);
-    newHist->next = NULL;
-
-    if(!histHead) { // if history linked list is empty
-        histHead = newHist;
-        return;
-    }
-    while(cur->next)
-        cur = cur->next;
-    cur->next = newHist;
-}
-
-void histFree() {
-    HIST_NODE* cur = histHead;
-    HIST_NODE* nex;
-    while(cur) {
-        nex = cur->next;
-        free(cur);
-        cur = nex;
-    }
-    histHead = NULL;
+    void* data = malloc(sizeof(HIST_NODE));
+    strcpy(((HIST_NODE*)data)->str, str);
+    addToList(&histList, data);
 }
