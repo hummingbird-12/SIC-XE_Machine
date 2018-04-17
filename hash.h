@@ -16,12 +16,12 @@
 
 #define OPCODE_LEN 7
 
-HASH_ENTRY* hashTable[HASH_SIZE]; // hash table pointer array
+// HASH_ENTRY* hashTable[HASH_SIZE]; // hash table pointer array
 
 void opCMD(INPUT_CMD);  // COMMAND: opcode
 void oplistCMD();       // COMMAND: opcodelist
 
 void hashCreate();                      // function to create hash table
-void checkOperandCnt(HASH_ENTRY*);
-void hashAddBucket(int, HASH_ENTRY*);   // function to add bucket to hash table
+void checkOperandCnt(void*);
+void hashAddBucket(int, void*);   // function to add bucket to hash table
 int hashFunction(char*);                // function that returns hash function

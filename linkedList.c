@@ -27,6 +27,12 @@ void freeList(LIST* listHead) {
     *listHead = NULL;
 }
 
+void opCodeTableFree() {
+    int i;
+    for(i = 0; i < HASH_SIZE; i++)
+        freeList(opCodeTable + i);
+}
+
 void printList(LIST listHead, void (fptr)(void*)) {
     NODE* cur = listHead;
     while(cur) {

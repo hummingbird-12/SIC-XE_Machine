@@ -15,6 +15,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "20161577.h"
+#include "linkedList.h"
 #include "hash.h"
 
 // Format 2 instruction but 1 operand
@@ -41,17 +42,20 @@ void opCMD(INPUT_CMD ipcmd) {
 }
 
 void oplistCMD() {
-    HASH_ENTRY* bucket;
+    NODE* bucket;
     int i;
 
     for(i = 0; i < HASH_SIZE; i++) {
         printf("%2d : ", i); // print table index
-        bucket = hashTable[i]; // get front bucket
+        bucket = opCodeTable[i]; // get front bucket
+        printList(bucket, printOpList);
+        /*
         while(bucket) {
             printf("[%s,%s]", bucket->inst, bucket->code);
             if((bucket = bucket->next)) // if there exists next bucket
                 printf(" -> ");
         }
+        */
         puts("");
     }
 }
@@ -59,7 +63,8 @@ void oplistCMD() {
 void hashCreate() {
     FILE* fp = fopen("opcode.txt", "r"); // open file
     char cd[3], ins[10], md[4];
-    HASH_ENTRY* bucket;
+    void* bucket;
+    int hash;
 
     if(!fp) {
         puts("ERROR: Unable to load \"opcode.txt\".");
@@ -67,15 +72,17 @@ void hashCreate() {
     }
 
     while(fscanf(fp, "%s %s %s", cd, ins, md) == 3) {
-        bucket = (HASH_ENTRY*) malloc(sizeof(HASH_ENTRY));
-        strcpy(bucket->code, cd);
-        strcpy(bucket->inst, ins);
-        bucket->codeVal = hexToDec(cd);
-        bucket->format = md[0] - '1';
+        bucket = malloc(sizeof(HASH_ENTRY));
+        strcpy(((HASH_ENTRY*)bucket)->code, cd);
+        strcpy(((HASH_ENTRY*)bucket)->inst, ins);
+        ((HASH_ENTRY*)bucket)->codeVal = hexToDec(cd);
+        ((HASH_ENTRY*)bucket)->format = md[0] - '1';
         checkOperandCnt(bucket);
-        bucket->next = NULL;
+        ((HASH_ENTRY*)bucket)->next = NULL;
 
-        hashAddBucket(hashFunction(bucket->inst), bucket);
+        hash = hashFunction(((HASH_ENTRY*)bucket)->inst);
+        addToList(opCodeTable + hash, bucket);
+        hashAddBucket(hash, bucket);
     }
 
     if(fclose(fp)) {
@@ -84,25 +91,25 @@ void hashCreate() {
     }
 }
 
-void checkOperandCnt(HASH_ENTRY* bucket) {
+void checkOperandCnt(void* bucket) {
     int i;
-    switch(bucket->format) {
+    switch(((HASH_ENTRY*)bucket)->format) {
         case f1: // Format 1 instruction
-            bucket->operandCnt = 0;
+            ((HASH_ENTRY*)bucket)->operandCnt = 0;
             break;
         case f2: // Format 2 instruction
-            bucket->operandCnt = 2; // Default is 2 operands
+            ((HASH_ENTRY*)bucket)->operandCnt = 2; // Default is 2 operands
             for(i = 0; i < 3; i++) // Exception check (CLEAR, SVC, TIXR)
-                if(!strcmp(bucket->inst, exceptionFmt2[i])) {
-                    bucket->operandCnt = 1;
+                if(!strcmp(((HASH_ENTRY*)bucket)->inst, exceptionFmt2[i])) {
+                    ((HASH_ENTRY*)bucket)->operandCnt = 1;
                     break;
                 }
             break;
         case f34: // Format 3 or 4 instruction
-            bucket->operandCnt = 1; // Default is 1 operand
+            ((HASH_ENTRY*)bucket)->operandCnt = 1; // Default is 1 operand
             for(i = 0; i < 1; i++) // Exception check (RSUB)
-                if(!strcmp(bucket->inst, exceptionFmt3[i])) {
-                    bucket->operandCnt = 0;
+                if(!strcmp(((HASH_ENTRY*)bucket)->inst, exceptionFmt3[i])) {
+                    ((HASH_ENTRY*)bucket)->operandCnt = 0;
                     break;
                 }
             break;
@@ -113,40 +120,23 @@ int hashFunction(char* inst) {
     return abs( (int) inst[0] * 2 + abs(inst[0] + inst[1] + inst[2]) ) % HASH_SIZE;
 }
 
-void hashAddBucket(int hash, HASH_ENTRY* bucket) {
-    HASH_ENTRY* cur = hashTable[hash];
+void hashAddBucket(int hash, void* bucket) {
+    HASH_ENTRY* cur = (HASH_ENTRY*)(opCodeTable[hash]->data);
 
-    if(!cur) { // if empty hash table index
-        hashTable[hash] = bucket;
+    if(!strcmp(cur->inst, ((HASH_ENTRY*)bucket)->inst)) // if empty hash table index
         return;
-    }
     while(cur->next)
         cur = cur->next; // go to the end of list
-    cur->next = bucket;
-}
-
-void hashFree() {
-    HASH_ENTRY* cur;
-    HASH_ENTRY* nex;
-    int i;
-    for(i = 0; i < HASH_SIZE; i++) {
-        cur = hashTable[i]; // front bucket in each hash table index
-        while(cur) {
-            nex = cur->next;
-            free(cur);
-            cur = nex;
-        }
-        hashTable[i] = NULL; // reset pointer to NULL
-    }
+    cur->next = (HASH_ENTRY*)bucket;
 }
 
 HASH_ENTRY* bucketSearch(char* inst) {
-    HASH_ENTRY* bucket;
+    void* bucket;
     char tmp[ASM_LEN] = {'\0'};
 
     strcpy(tmp, inst);
-    bucket = hashTable[hashFunction(tmp)]; // get front bucket from hash function
-    while(bucket && strcmp(bucket->inst, inst)) // search till match or end
-        bucket = bucket->next;
-    return bucket;
+    bucket = opCodeTable[hashFunction(tmp)]->data; // get front bucket from hash function
+    while(bucket && strcmp(((HASH_ENTRY*)bucket)->inst, inst)) // search till match or end
+        bucket = ((HASH_ENTRY*)bucket)->next;
+    return (HASH_ENTRY*)bucket;
 }
