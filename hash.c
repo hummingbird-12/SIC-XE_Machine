@@ -72,6 +72,7 @@ void hashCreate() {
     }
 
     while(fscanf(fp, "%s %s %s", cd, ins, md) == 3) {
+        // allocate and fill in new data
         bucket = malloc(sizeof(HASH_ENTRY));
         strcpy(((HASH_ENTRY*)bucket)->code, cd);
         strcpy(((HASH_ENTRY*)bucket)->inst, ins);
@@ -80,8 +81,11 @@ void hashCreate() {
         checkOperandCnt(bucket);
         ((HASH_ENTRY*)bucket)->next = NULL;
 
+        // calculate hash
         hash = hashFunction(((HASH_ENTRY*)bucket)->inst);
+        // add to generic list
         addToList(opCodeTable + hash, bucket);
+        // add to internal list for print issues
         hashAddBucket(hash, bucket);
     }
 
@@ -123,7 +127,7 @@ int hashFunction(char* inst) {
 void hashAddBucket(int hash, void* bucket) {
     HASH_ENTRY* cur = (HASH_ENTRY*)(opCodeTable[hash]->data);
 
-    if(!strcmp(cur->inst, ((HASH_ENTRY*)bucket)->inst)) // if empty hash table index
+    if(!strcmp(cur->inst, ((HASH_ENTRY*)bucket)->inst)) // if it is the first bucket
         return;
     while(cur->next)
         cur = cur->next; // go to the end of list
