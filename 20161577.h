@@ -159,7 +159,7 @@ typedef struct CS_STRUCT {
 } CNT_SEC;
 
 typedef struct ES_STRUCT {
-    char symName[ASM_LEN];
+    char symName[CS_LEN];
     int address;
 } EXT_SYMBOL;
 

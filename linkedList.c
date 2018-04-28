@@ -64,15 +64,14 @@ void printOpList(void* data) {
 
 void printCntSecTable(void* data) {
     if(data == extSymTable->data) {
-        printf("Control\tSymbol\tAddress\tLength\n");
-        printf("section\tname\n");
+        printf("Control\t\tSymbol\t\tAddress\t\tLength\n");
+        printf("section\t\tname\n");
         printf("---------------------------------------------------------\n");
     }
-    printf("%s\t\t\t%04X\t%04X\n", ((CNT_SEC*)data)->csName, ((CNT_SEC*)data)->stAddress, ((CNT_SEC*)data)->length);
+    printf("%s\t\t\t\t%04X\t\t%04X\n", ((CNT_SEC*)data)->csName, ((CNT_SEC*)data)->stAddress, ((CNT_SEC*)data)->length);
     printList(((CNT_SEC*)data)->extSym, printExtSym);
-    printf("---------------------------------------------------------\n");
 }
 
 void printExtSym(void* data) {
-    printf("\t\t%s\t%04X\n", ((EXT_SYMBOL*)data)->symName, ((EXT_SYMBOL*)data)->address);
+    printf("\t\t%s\t\t%04X\n", ((EXT_SYMBOL*)data)->symName, ((EXT_SYMBOL*)data)->address);
 }
