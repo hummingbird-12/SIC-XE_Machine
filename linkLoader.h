@@ -4,7 +4,7 @@ void pAddrCMD(INPUT_CMD);
 bool loaderCMD(INPUT_CMD);
 
 int linkLoaderPass1(FILE**);
-bool linkLoaderPass2(FILE**);
+int linkLoaderPass2(FILE**);
 
 void fcloseObj(FILE**);
 bool searchCS(char*);

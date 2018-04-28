@@ -38,14 +38,14 @@ bool loaderCMD(INPUT_CMD ipcmd) {
 
 int linkLoaderPass1(FILE** objFptr) {
     int i = 0, j;
-    int accLen = 0;
+    int CSADDR = 0;
     char record[101];
     char csName[CS_LEN], esName[CS_LEN], addr[CS_LEN];
     CNT_SEC* newCntSec = NULL;
     EXT_SYMBOL* newExtSym = NULL;
 
     newCntSec = (CNT_SEC*) malloc(sizeof(CNT_SEC));
-    newCntSec->stAddress = accLen = progAddr; // start address of first control section
+    newCntSec->stAddress = CSADDR = progAddr; // start address of first control section
 
     while(objFptr[i]) {
         fgets(record, 101, objFptr[i]); // header record
@@ -85,7 +85,7 @@ int linkLoaderPass1(FILE** objFptr) {
                     }
                     newExtSym = (EXT_SYMBOL*) malloc(sizeof(EXT_SYMBOL));
                     strncpy(newExtSym->symName, esName, CS_LEN - 1);
-                    newExtSym->address = hexToDec(addr) + accLen;
+                    newExtSym->address = hexToDec(addr) + CSADDR;
                     addToList(&(newCntSec->extSym), (void*) newExtSym);
                 }
             }
@@ -94,20 +94,67 @@ int linkLoaderPass1(FILE** objFptr) {
                 record[strlen(record) - 1] = '\0';
         }
 
-        accLen += newCntSec->length;
+        CSADDR += newCntSec->length;
         i++;
         if(i == CS_MAX)
             break;
         if(objFptr[i]) { // next control section exists
             newCntSec = (CNT_SEC*) malloc(sizeof(CNT_SEC));
-            newCntSec->stAddress = accLen;
+            newCntSec->stAddress = CSADDR;
         }
     }
-    return accLen - progAddr;
+    return CSADDR - progAddr;
 }
 
-bool linkLoaderPass2(FILE** objFptr) {
-    return true;
+int linkLoaderPass2(FILE** objFptr) {
+    int i = 0, j;
+    int CSADDR = 0, EXECADDR = 0, CSLTH = 0;
+    int* refNum = NULL;
+    char record[101];
+    char csName[CS_LEN], esName[CS_LEN], addr[CS_LEN];
+    NODE* curCntSec = extSymTable;
+    NODE* curExtSym = ((CNT_SEC*)(curCntSec->data))->extSym;
+
+    CSADDR = EXECADDR = progAddr; // start address of first control section
+
+    while(objFptr[i]) {
+        fgets(record, 101, objFptr[i]); // header record
+        if(record[strlen(record) - 1] == '\n')
+            record[strlen(record) - 1] = '\0';
+        CSLTH = ((CNT_SEC*)(curCntSec->data))->length;
+
+        fgets(record, 101, objFptr[i]); // read next record
+        if(record[strlen(record) - 1] == '\n')
+            record[strlen(record) - 1] = '\0';
+
+        while(record[0] != 'E') {
+            if(record[0] == 'T') { // if a T record is found
+            }
+            else if(record[0] == 'M') { // if M record is found
+            }
+            else if(record[0] == 'R') { // if R record is found
+                if(refNum)
+                    free(refNum);
+                refNum = (int*) malloc(sizeof(int) * (strlen(record) / 8 + 2));
+                if(j = 2; j < strlen(record) / 8 + 2; j++)
+                    refNum[j] = -1;
+                refNum[1] = CSADDR;
+            }
+
+            fgets(record, 101, objFptr[i]); // read next record
+            if(record[strlen(record) - 1] == '\n')
+                record[strlen(record) - 1] = '\0';
+        }
+
+        if(strlen(record) > 1) // if address is specified in End record
+            EXECADDR = CSADDR + hexToDec(record + 1);
+        CSADDR += CSLTH;
+
+        i++;
+        if(i == CS_MAX)
+            break;
+    }
+    return EXECADDR;
 }
 
 void fcloseObj(FILE** objFptr) {
