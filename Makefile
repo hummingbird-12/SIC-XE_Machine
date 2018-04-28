@@ -26,5 +26,4 @@ linkedList.o: 20161577.h linkedList.h shell.h
 clean:
 	-rm *.o
 	-rm *.lst
-	-rm *.obj
 	-rm 20161577.out
