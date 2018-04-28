@@ -25,7 +25,9 @@ COMMAND cmdList[CMD_CNT] = {
     { "fill", "f", memory, fill, true }, { "reset", "reset", memory, reset, false },
     { "opcode", "opcode", opcode, op, true }, { "opcodelist", "opcodelist", opcode, oplist, false },
     { "type", "type", shell, type, true }, { "assemble", "assemble", assembler, assemble, true },
-    { "symbol", "symbol", assembler, symbol, false }, { "invalid", "invalid", invalid, invFormat, true }
+    { "symbol", "symbol", assembler, symbol, false }, { "progaddr", "progaddr", linkLoader, pAddr, true },
+    { "loader", "loader", linkLoader, loader, true }, { "run", "run", linkLoader, run, false },
+    { "bp", "bp", linkLoader, bp, true }, { "invalid", "invalid", invalid, invFormat, true }
 };
 
 INPUT_CMD findCMD(char* str) {
@@ -60,6 +62,8 @@ INPUT_CMD findCMD(char* str) {
     j = 0;
     while(tok) {
         tok = strtok(NULL, delim); // next token (NOT expected comma if valid command)
+        if(ipcmd.cmd == loader && !tok)
+            break;
         if(!j && !tok) // no argument for command 
             break;
         if((j && !tok) || tok[0] == ',') { // there was a previous argument but empty token or comma found
@@ -67,6 +71,8 @@ INPUT_CMD findCMD(char* str) {
             return ipcmd;
         }
         strcpy(ipcmd.arg[j++], tok); // copy argument to input command structure
+        if(ipcmd.cmd == loader)
+            continue;
         tok = strtok(NULL, delim); // next token (expected a comma if valid command)
         if(tok && tok[0] != ',') { // if token not empty, expected a comma
             ipcmd.cmd = invFormat;
@@ -112,6 +118,7 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
         case reset:
         case oplist:
         case symbol:
+        case run:
             if(ipcmd.argCnt)
                 code = FORMAT;
             break;
@@ -119,6 +126,7 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
         case op:
         case type:
         case assemble:
+        case pAddr:
             if(ipcmd.argCnt != 1)
                 code = FORMAT;
             break;
@@ -132,9 +140,19 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
             if(ipcmd.argCnt != 3)
                 code = FORMAT;
             break;
-        // need less than 3
+        // need less than 3 (0~2)
         case dump:
             if(ipcmd.argCnt > 2)
+                code = FORMAT;
+            break;
+        // need less than 2 (0~1)
+        case bp:
+            if(ipcmd.argCnt > 1)
+                code = FORMAT;
+            break;
+        // need at least 1 at most 3 (1~3)
+        case loader:
+            if(!ipcmd.argCnt || ipcmd.argCnt > 3)
                 code = FORMAT;
             break;
         default:
@@ -177,6 +195,28 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
         if(ipcmd.cmd == assemble)
             if(strcmp(ipcmd.arg[0] + strlen(ipcmd.arg[0]) - 4, ".asm"))
                 code = FILENAME;
+    }
+    else if(format.category == linkLoader) {
+        switch(ipcmd.cmd) {
+            case pAddr:
+                arg[0] = hexToDec(ipcmd.arg[0]);
+                if(arg[0] == -1)
+                    code = HEX;
+                else if(arg[0] >= MEM_SIZE)
+                    code = VALUE;
+                break;
+            case bp:
+                arg[0] = hexToDec(ipcmd.arg[0]);
+                if(!strcmp(ipcmd.arg[0], "clear"))
+                    break;
+                if(arg[0] == -1)
+                    code = HEX;
+                if(arg[0] >= MEM_SIZE)
+                    code = VALUE;
+                break;
+            default:
+                break;
+        }
     }
     return code;
 }

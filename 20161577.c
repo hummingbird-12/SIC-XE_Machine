@@ -94,6 +94,13 @@ int main() {
             case symbol:
                 symbolCMD();
                 break;
+            case pAddr:
+                pAddrCMD(input);
+                break;
+            case loader:
+            case run:
+            case bp:
+                break;
             case invFormat:
                 invFormatCMD();
                 break;
