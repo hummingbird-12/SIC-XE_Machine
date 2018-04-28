@@ -53,6 +53,12 @@ int linkLoaderPass1(FILE** objFptr) {
             record[strlen(record) - 1] = '\0';
         newCntSec->length = hexToDec(record + strlen(record) - 6); // control section length
         strncpy(csName, record + 1, CS_LEN - 1); // get control section name
+        if(record[0] != 'H') {
+            printf("ERROR: missing header record in .obj file number %d.\n", i + 1);
+            extSymTableFree();
+            free(newCntSec);
+            return 0;
+        }
         if(searchCS(csName)) { // same name for multiple control sections
             puts("ERROR: overlapping control section name.");
             extSymTableFree();
