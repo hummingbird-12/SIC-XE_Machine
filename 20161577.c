@@ -30,6 +30,7 @@ int main() {
 
     resetCMD(); // initialize memory
     hashCreate(); // create hash table of opcodes
+    progAddr = 0; // default program starting address
 
     while(1) {
         printf("sicsim> ");
@@ -98,6 +99,8 @@ int main() {
                 pAddrCMD(input);
                 break;
             case loader:
+                loaderCMD(input);
+                break;
             case run:
             case bp:
                 break;

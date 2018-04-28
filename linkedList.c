@@ -33,6 +33,15 @@ void opCodeTableFree() {
         freeList(opCodeTable + i);
 }
 
+void extSymTableFree() {
+    NODE* cur = extSymTable;
+    while(cur) {
+        freeList(&(((CNT_SEC*)(cur->data))->extSym));
+        cur = cur->next;
+    }
+    freeList(&extSymTable);
+}
+
 void printList(LIST listHead, void (fptr)(void*)) {
     NODE* cur = listHead;
     while(cur) {
@@ -51,4 +60,19 @@ void printOpList(void* data) {
     printf("[%s,%s]", ((HASH_ENTRY*)data)->inst, ((HASH_ENTRY*)data)->code);
     if(((HASH_ENTRY*)data)->next)
         printf(" -> ");
+}
+
+void printCntSecTable(void* data) {
+    if(data == extSymTable->data) {
+        printf("Control\tSymbol\tAddress\tLength\n");
+        printf("section\tname\n");
+        printf("---------------------------------------------------------\n");
+    }
+    printf("%s\t\t\t%04X\t%04X\n", ((CNT_SEC*)data)->csName, ((CNT_SEC*)data)->stAddress, ((CNT_SEC*)data)->length);
+    printList(((CNT_SEC*)data)->extSym, printExtSym);
+    printf("---------------------------------------------------------\n");
+}
+
+void printExtSym(void* data) {
+    printf("\t\t%s\t%04X\n", ((EXT_SYMBOL*)data)->symName, ((EXT_SYMBOL*)data)->address);
 }

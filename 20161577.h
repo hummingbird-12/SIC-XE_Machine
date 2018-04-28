@@ -28,6 +28,8 @@
 #define ARG_MAX 3           // maximum argument count
 #define MEM_SIZE 1048576    // 2^20 = 1MB
 #define HASH_SIZE 20        // hash table size
+#define CS_LEN 7            // maximum control section name length
+#define CS_MAX 3            // maximum control section count
 #define ASM_LEN 121         // maximum length of single asm source line
 #define INC_BYTE 16 * 16    // increase byte in object code
 #define INC_HBYTE 16        // increase half byte in object code
@@ -148,6 +150,18 @@ typedef struct MOD_STRUCT {
     int lenHB;
     struct MOD_STRUCT* next;
 } MOD_RECORD;
+
+typedef struct CS_STRUCT {
+    char csName[CS_LEN];
+    int stAddress;
+    int length;
+    LIST extSym;
+} CNT_SEC;
+
+typedef struct ES_STRUCT {
+    char symName[ASM_LEN];
+    int address;
+} EXT_SYMBOL;
 
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value
 void symTableFree();    // function to free SYMTAB
