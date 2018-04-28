@@ -50,7 +50,7 @@ int main() {
         tmp[j] = '\0';
 
         input = findCMD(tmp); // find the command format from input string
-        if(input.cmd < invFormat && input.cmd != assemble)
+        if(input.cmd < invFormat && input.cmd != assemble && input.cmd != loader)
             histAdd(inp); // if command is not invalid add to history
 
         // call function for each command
@@ -99,7 +99,8 @@ int main() {
                 pAddrCMD(input);
                 break;
             case loader:
-                loaderCMD(input);
+                if(loaderCMD(input))
+                    histAdd(inp);
                 break;
             case run:
             case bp:

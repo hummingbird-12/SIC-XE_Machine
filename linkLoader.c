@@ -6,7 +6,7 @@ void pAddrCMD(INPUT_CMD ipcmd) {
     progAddr = hexToDec(ipcmd.arg[0]);
 }
 
-void loaderCMD(INPUT_CMD ipcmd) {
+bool loaderCMD(INPUT_CMD ipcmd) {
     FILE* objFptr[3];
     int i;
 
@@ -17,16 +17,17 @@ void loaderCMD(INPUT_CMD ipcmd) {
         if(strcmp(ipcmd.arg[i] + strlen(ipcmd.arg[i]) - 4, ".obj")) {
             puts("ERROR: Non-object file selected.");
             fcloseObj(objFptr);
-            return;
+            return false;
         }
         if(!(objFptr[i] = fopen(ipcmd.arg[i], "r"))) {
             printf("ERROR: %s not found.\n", ipcmd.arg[i]);
             fcloseObj(objFptr);
-            return;
+            return false;
         }
     }
     fcloseObj(objFptr);
     printList(extSymTable, printCntSecTable);
+    return true;
 }
 
 void linkLoaderPass1(FILE** objFptr) {
