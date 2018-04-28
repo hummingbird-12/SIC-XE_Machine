@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "hash.h"
 #include "assembler.h"
+#include "linkLoader.h"
 
 int main() {
     char inp[CMD_LEN];  // input string
