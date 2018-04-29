@@ -1,5 +1,6 @@
 #include "20161577.h"
 #include "linkedList.h"
+#include "memory.h"
 #include "linkLoader.h"
 
 void pAddrCMD(INPUT_CMD ipcmd) {
@@ -32,6 +33,10 @@ bool loaderCMD(INPUT_CMD ipcmd) {
     printList(extSymTable, printCntSecTable);
     printf("---------------------------------------------------------\n");
     printf("\t\t\t\tTotal length\t%04X\n", progLen);
+
+    for(i = 0; i < 3; i++)
+        rewind(objFptr[i]);
+    linkLoaderPass2(objFptr);
     fcloseObj(objFptr);
     return true;
 }
@@ -78,7 +83,7 @@ int linkLoaderPass1(FILE** objFptr) {
                 for(j = 1; record[j]; j += 12) {
                     strncpy(esName, record + j, CS_LEN - 1); // get symbol name
                     strncpy(addr, record + j + 6, CS_LEN - 1); // get symbol address
-                    if(searchES(esName, newCntSec)) { // same name for multiple symbols in single control section
+                    if(searchES(esName) != -1) { // same name for multiple symbols in single control section
                         puts("ERROR: overlapping symbol name.");
                         extSymTableFree();
                         return 0;
@@ -107,13 +112,12 @@ int linkLoaderPass1(FILE** objFptr) {
 }
 
 int linkLoaderPass2(FILE** objFptr) {
-    int i = 0, j;
+    int i = 0, j, k, offset, tLen;
     int CSADDR = 0, EXECADDR = 0, CSLTH = 0;
     int* refNum = NULL;
     char record[101];
-    char csName[CS_LEN], esName[CS_LEN], addr[CS_LEN];
+    char esName[CS_LEN], temp[CS_LEN];
     NODE* curCntSec = extSymTable;
-    NODE* curExtSym = ((CNT_SEC*)(curCntSec->data))->extSym;
 
     CSADDR = EXECADDR = progAddr; // start address of first control section
 
@@ -129,15 +133,32 @@ int linkLoaderPass2(FILE** objFptr) {
 
         while(record[0] != 'E') {
             if(record[0] == 'T') { // if a T record is found
+                memset(temp, '\0', CS_LEN);
+                strncpy(temp, record + 1, CS_LEN - 1);
+                offset = hexToDec(temp); // text record start address offset
+                
+                memset(temp, '\0', CS_LEN);
+                strncpy(temp, record + 7, 2);
+                tLen = hexToDec(temp); // text record length
+
+                for(j = 0; j < tLen; j++) {
+                    memset(temp, '\0', CS_LEN);
+                    strncpy(temp, record + 9 + j * 2, 2);
+                    mem[CSADDR + offset + j] = hexToDec(temp); // load to memory
+                }
             }
             else if(record[0] == 'M') { // if M record is found
             }
             else if(record[0] == 'R') { // if R record is found
                 if(refNum)
                     free(refNum);
-                refNum = (int*) malloc(sizeof(int) * (strlen(record) / 8 + 2));
-                if(j = 2; j < strlen(record) / 8 + 2; j++)
-                    refNum[j] = -1;
+                refNum = (int*) malloc(sizeof(int) * ((strlen(record) - 1) / 8 + 3));
+                for(j = 2; j < (strlen(record) - 1) / 8 + 3; j++) {
+                    strncpy(esName, record + (j - 2) * 8 + 3, CS_LEN - 1);
+                    for(k = strlen(esName); k < CS_LEN - 1; k++)
+                        esName[k] = ' ';
+                    refNum[j] = searchES(esName);
+                }
                 refNum[1] = CSADDR;
             }
 
@@ -153,6 +174,7 @@ int linkLoaderPass2(FILE** objFptr) {
         i++;
         if(i == CS_MAX)
             break;
+        curCntSec = curCntSec->next;
     }
     return EXECADDR;
 }
@@ -178,14 +200,17 @@ bool searchCS(char* csName) {
     return false;
 }
 
-bool searchES(char* symName, CNT_SEC* curCS) {
-    NODE* cur = curCS->extSym;
-    EXT_SYMBOL* data;
-    while(cur) {
-        data = (EXT_SYMBOL*) cur->data;
-        if(!strcmp(data->symName, symName))
-            return true;
-        cur = cur->next;
+int searchES(char* symName) {
+    NODE* curCS = extSymTable;
+    NODE* curES;
+    while(curCS) {
+        curES = ((CNT_SEC*)(curCS->data))->extSym;
+        while(curES) {
+            if(!strcmp(symName, ((EXT_SYMBOL*)(curES->data))->symName))
+                return ((EXT_SYMBOL*)(curES->data))->address;
+            curES = curES->next;
+        }
+        curCS = curCS->next;
     }
-    return false;
+    return -1;
 }

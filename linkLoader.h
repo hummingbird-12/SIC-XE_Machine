@@ -8,4 +8,4 @@ int linkLoaderPass2(FILE**);
 
 void fcloseObj(FILE**);
 bool searchCS(char*);
-bool searchES(char*, CNT_SEC*);
+int searchES(char*);
