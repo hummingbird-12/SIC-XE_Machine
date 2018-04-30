@@ -163,6 +163,8 @@ typedef struct ES_STRUCT {
     int address;
 } EXT_SYMBOL;
 
+int execAddress;
+
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value
 void symTableFree();    // function to free SYMTAB
 void parseListFree();   // function to free ASM parse list
