@@ -52,6 +52,8 @@ void printList(LIST listHead, void (fptr)(void*)) {
 
 void printHistory(void* data) {
     static int index = 1;
+    if(data == histList->data)
+        index = 1;
     printf("%-3d  ", index++);
     puts(((HIST_NODE*)data)->str);
 }
