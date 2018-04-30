@@ -114,6 +114,7 @@ int main() {
                     histAdd(inp);
                 break;
             case run:
+                runCMD();
                 break;
             case bp:
                 if(bpCMD(input))

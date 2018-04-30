@@ -36,3 +36,6 @@ bool searchBP(int address) {
     }
     return false;
 }
+
+void runCMD() {
+}
