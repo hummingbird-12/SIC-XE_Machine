@@ -67,8 +67,8 @@ typedef enum {
 
 // register list, for better readability
 typedef enum {
-    A, X, L, B, S, T, F
-} REG_NAME;
+    A, X, L, PC, B, S, T
+} REG;
 
 // command format structure
 typedef struct {
@@ -170,7 +170,8 @@ typedef struct BP_STRUCT {
     int address;
 } BREAK_PNT;
 
-int execAddress;
+int execAddress, endAddress;
+int registers[7]; // A, X, L, PC, B, S, T
 
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value
 void symTableFree();    // function to free SYMTAB

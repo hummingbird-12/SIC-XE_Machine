@@ -117,6 +117,7 @@ int linkLoaderPass1(FILE** objFptr) {
             newCntSec->extSym = NULL;
         }
     }
+    endAddress = CSADDR;
     return CSADDR - progAddr;
 }
 
