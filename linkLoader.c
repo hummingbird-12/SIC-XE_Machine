@@ -57,6 +57,7 @@ int linkLoaderPass1(FILE** objFptr) {
 
     newCntSec = (CNT_SEC*) malloc(sizeof(CNT_SEC));
     newCntSec->stAddress = CSADDR = progAddr; // start address of first control section
+    newCntSec->extSym = NULL;
 
     while(objFptr[i]) {
         fgets(record, 101, objFptr[i]); // header record
@@ -89,7 +90,7 @@ int linkLoaderPass1(FILE** objFptr) {
                 for(j = 1; record[j]; j += 12) {
                     strncpy(esName, record + j, CS_LEN - 1); // get symbol name
                     strncpy(addr, record + j + 6, CS_LEN - 1); // get symbol address
-                    if(searchES(esName) != -1) { // same name for multiple symbols in single control section
+                    if(searchES(esName) != -1) { // same name for multiple symbols
                         puts("ERROR: overlapping symbol name.");
                         extSymTableFree();
                         return 0;
@@ -112,6 +113,7 @@ int linkLoaderPass1(FILE** objFptr) {
         if(objFptr[i]) { // next control section exists
             newCntSec = (CNT_SEC*) malloc(sizeof(CNT_SEC));
             newCntSec->stAddress = CSADDR;
+            newCntSec->extSym = NULL;
         }
     }
     return CSADDR - progAddr;
