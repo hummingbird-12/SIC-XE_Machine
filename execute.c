@@ -29,8 +29,10 @@ bool bpCMD(INPUT_CMD ipcmd) {
 
 bool searchBP(int address) {
     NODE* curBP = breakPntList;
-    while(curBP)
+    while(curBP) {
         if(((BREAK_PNT*)(curBP->data))->address == address)
             return true;
+        curBP = curBP->next;
+    }
     return false;
 }
