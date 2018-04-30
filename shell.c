@@ -77,6 +77,7 @@ void quitCMD() {
     parseListFree();        // free ASM parse list
     objListFree();          // free object code list
     modListFree();          // free modification record list
+    extSymTableFree();      // free ESTAB
     exit(0);
 }
 

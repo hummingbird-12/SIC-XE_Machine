@@ -33,7 +33,8 @@ bool loaderCMD(INPUT_CMD ipcmd) {
         return false;
 
     for(i = 0; i < 3; i++)
-        rewind(objFptr[i]); // rewind file stream to beginning
+        if(objFptr[i])
+            rewind(objFptr[i]); // rewind file stream to beginning
 
     execAddress = linkLoaderPass2(objFptr); // pass 2 of linking loader
     if(execAddress == -1)
@@ -210,6 +211,8 @@ int linkLoaderPass2(FILE** objFptr) {
             break;
         curCntSec = curCntSec->next;
     }
+    if(refNum)
+        free(refNum);
     return EXECADDR;
 }
 
