@@ -51,8 +51,18 @@ int main() {
         tmp[j] = '\0';
 
         input = findCMD(tmp); // find the command format from input string
-        if(input.cmd < invFormat && input.cmd != assemble && input.cmd != loader)
-            histAdd(inp); // if command is not invalid add to history
+        switch(input.cmd) {
+            case assemble:
+            case loader:
+            case bp:
+            case invFormat:
+            case invHex:
+            case invVal:
+            case invFile:
+                break;
+            default:
+                histAdd(inp); // if command is not invalid add to history
+        }
 
         // call function for each command
         switch(input.cmd) {
@@ -106,7 +116,8 @@ int main() {
             case run:
                 break;
             case bp:
-                bpCMD(input);
+                if(bpCMD(input))
+                    histAdd(inp);
                 break;
             case invFormat:
                 invFormatCMD();
