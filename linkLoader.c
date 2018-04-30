@@ -27,16 +27,22 @@ bool loaderCMD(INPUT_CMD ipcmd) {
             return false;
         }
     }
-    progLen = linkLoaderPass1(objFptr);
+
+    progLen = linkLoaderPass1(objFptr); // pass 1 of linking loader
     if(!progLen)
         return false;
-    printList(extSymTable, printCntSecTable);
+
+    for(i = 0; i < 3; i++)
+        rewind(objFptr[i]); // rewind file stream to beginning
+
+    execAddress = linkLoaderPass2(objFptr); // pass 2 of linking loader
+    if(execAddress == -1)
+        return false;
+
+    printList(extSymTable, printCntSecTable); // print load map
     printf("---------------------------------------------------------\n");
     printf("\t\t\t\tTotal length\t%04X\n", progLen);
 
-    for(i = 0; i < 3; i++)
-        rewind(objFptr[i]);
-    linkLoaderPass2(objFptr);
     fcloseObj(objFptr);
     return true;
 }
@@ -113,7 +119,7 @@ int linkLoaderPass1(FILE** objFptr) {
 
 int linkLoaderPass2(FILE** objFptr) {
     int i = 0, j, k;
-    int offset, tLen, hByteCnt, modAddress;
+    int offset, tLen, hByteCnt, modAddress, maxExSymIndex = -1;
     int CSADDR = 0, EXECADDR = 0, CSLTH = 0;
     int* refNum = NULL;
     char record[101];
@@ -159,16 +165,20 @@ int linkLoaderPass2(FILE** objFptr) {
 
                 memset(temp, '\0', CS_LEN);
                 strcpy(temp, record + 10);
+                if(hexToDec(temp) > maxExSymIndex) {
+                    puts("ERROR: out-of-bound reference number in modification record.");
+                    return -1;
+                }
 
-                modAddress = mem[CSADDR + offset] % (hByteCnt % 2 ? 0x10 : 0x100);
+                modAddress = mem[CSADDR + offset] % (hByteCnt % 2 ? 0x10 : 0x100); // first (half)byte to modify
                 for(j = 1; j <= (hByteCnt - 1) / 2; j++) {
                     modAddress *= 0x100;
-                    modAddress += mem[CSADDR + offset + j];
+                    modAddress += mem[CSADDR + offset + j]; // the rest (half)byte to modify
                 }
                 modAddress += (record[9] == '+' ? 1 : -1) * refNum[hexToDec(temp)]; // modification address
 
                 for(j = (hByteCnt - 1) / 2; j; j--) {
-                    mem[CSADDR + offset + j] = modAddress % 0x100;
+                    mem[CSADDR + offset + j] = modAddress % 0x100; // store back to memory
                     modAddress /= 0x100;
                 }
                 mem[CSADDR + offset] = (hByteCnt % 2 ? (mem[CSADDR + offset] / 0x10) * 0x10 + modAddress : modAddress);
@@ -179,10 +189,11 @@ int linkLoaderPass2(FILE** objFptr) {
                 refNum = (int*) malloc(sizeof(int) * ((strlen(record) - 1) / 8 + 3));
                 for(j = 2; j < (strlen(record) - 1) / 8 + 3; j++) {
                     strncpy(esName, record + (j - 2) * 8 + 3, CS_LEN - 1);
-                    for(k = strlen(esName); k < CS_LEN - 1; k++)
+                    for(k = strlen(esName); k < CS_LEN - 1; k++) // fill with ' ' till 6 characters
                         esName[k] = ' ';
                     refNum[j] = searchES(esName);
                 }
+                maxExSymIndex = j - 1; // save max index for error checking
                 refNum[1] = CSADDR;
             }
 
@@ -190,9 +201,6 @@ int linkLoaderPass2(FILE** objFptr) {
             if(record[strlen(record) - 1] == '\n')
                 record[strlen(record) - 1] = '\0';
         }
-
-        if(strlen(record) > 1) // if address is specified in End record
-            EXECADDR = CSADDR + hexToDec(record + 1);
         CSADDR += CSLTH;
 
         i++;
