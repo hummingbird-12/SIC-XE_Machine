@@ -34,7 +34,7 @@ char directives[8][6] = {
     "RESW"
 };
 // ASM register list
-char registers[7] = {
+char regs[7] = {
     'A', 'X', 'L', 'B', 'S', 'T', 'F'
 };
 
@@ -852,7 +852,7 @@ ASM_SRC* parseASM(char* source) {
 bool isRegister(char reg) {
     int i;
     for(i = 0; i < 7; i++)
-        if(registers[i] == reg)
+        if(regs[i] == reg)
             return true;
     return false;
 }
