@@ -112,7 +112,8 @@ int linkLoaderPass1(FILE** objFptr) {
 }
 
 int linkLoaderPass2(FILE** objFptr) {
-    int i = 0, j, k, offset, tLen;
+    int i = 0, j, k;
+    int offset, tLen, hByteCnt, modAddress;
     int CSADDR = 0, EXECADDR = 0, CSLTH = 0;
     int* refNum = NULL;
     char record[101];
@@ -148,6 +149,29 @@ int linkLoaderPass2(FILE** objFptr) {
                 }
             }
             else if(record[0] == 'M') { // if M record is found
+                memset(temp, '\0', CS_LEN);
+                strncpy(temp, record + 1, CS_LEN - 1);
+                offset = hexToDec(temp); // byte location to modify
+
+                memset(temp, '\0', CS_LEN);
+                strncpy(temp, record + 7, 2);
+                hByteCnt = hexToDec(temp); // half byte count to modify
+
+                memset(temp, '\0', CS_LEN);
+                strcpy(temp, record + 10);
+
+                modAddress = mem[CSADDR + offset] % (hByteCnt % 2 ? 0x10 : 0x100);
+                for(j = 1; j <= (hByteCnt - 1) / 2; j++) {
+                    modAddress *= 0x100;
+                    modAddress += mem[CSADDR + offset + j];
+                }
+                modAddress += (record[9] == '+' ? 1 : -1) * refNum[hexToDec(temp)]; // modification address
+
+                for(j = (hByteCnt - 1) / 2; j; j--) {
+                    mem[CSADDR + offset + j] = modAddress % 0x100;
+                    modAddress /= 0x100;
+                }
+                mem[CSADDR + offset] = (hByteCnt % 2 ? (mem[CSADDR + offset] / 0x10) * 0x10 + modAddress : modAddress);
             }
             else if(record[0] == 'R') { // if R record is found
                 if(refNum)
