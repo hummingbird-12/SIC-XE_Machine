@@ -35,6 +35,7 @@
 #define INC_HBYTE 16        // increase half byte in object code
 #define MAX12DISP 4096      // highest number expressable with 12 bits
 #define MAX15ADDR 32768     // highest number expressable with 15 bits
+#define REG_CNT 9           // register count
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command
@@ -67,7 +68,7 @@ typedef enum {
 
 // register list, for better readability
 typedef enum {
-    A, X, L, PC, B, S, T
+    A, X, L, B, S, T, F, PC, SW
 } REG;
 
 // command format structure
@@ -171,7 +172,7 @@ typedef struct BP_STRUCT {
 } BREAK_PNT;
 
 int execAddress, endAddress;
-int registers[7]; // A, X, L, PC, B, S, T
+int registers[REG_CNT]; // A, X, L, B, S, T, F, PC, SW
 
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value
 void symTableFree();    // function to free SYMTAB

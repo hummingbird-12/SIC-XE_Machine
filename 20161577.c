@@ -29,7 +29,7 @@ int main() {
     int i, j;
     INPUT_CMD input;    // storage for parsed input
 
-    for(i = 0; i < 7; i++)
+    for(i = 0; i < REG_CNT; i++)
         registers[i] = 0; // initialize registers
     resetCMD(); // initialize memory
     hashCreate(); // create hash table of opcodes
