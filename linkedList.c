@@ -75,3 +75,7 @@ void printCntSecTable(void* data) {
 void printExtSym(void* data) {
     printf("\t\t%s\t\t%04X\n", ((EXT_SYMBOL*)data)->symName, ((EXT_SYMBOL*)data)->address);
 }
+
+void printBreakPntList(void* data) {
+    printf("\t%04X\n", ((BREAK_PNT*)data)->address);
+}

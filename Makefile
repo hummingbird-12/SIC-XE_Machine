@@ -1,5 +1,5 @@
-20161577.out: main.o cmdProc.o shell.o memory.o hash.o assembler.o linkLoader.o linkedList.o
-	gcc -Wall -g -o 20161577.out main.o cmdProc.o shell.o memory.o hash.o assembler.o linkLoader.o linkedList.o -lm
+20161577.out: main.o cmdProc.o shell.o memory.o hash.o assembler.o linkLoader.o execute.o linkedList.o
+	gcc -Wall -g -o 20161577.out main.o cmdProc.o shell.o memory.o hash.o assembler.o linkLoader.o execute.o linkedList.o -lm
 	@echo "\n>>> To execute, type ./20161577.out\n"
 
 main.o: 20161577.h 20161577.c
@@ -25,6 +25,9 @@ linkLoader.o: 20161577.h linkLoader.h
 
 linkedList.o: 20161577.h linkedList.h shell.h
 	gcc -Wall -g -c -o linkedList.o linkedList.c -lm
+
+execute.o: 20161577.h linkedList.h execute.h
+	gcc -Wall -g -c -o execute.o execute.c -lm
 
 clean:
 	-rm *.o

@@ -163,6 +163,10 @@ typedef struct ES_STRUCT {
     int address;
 } EXT_SYMBOL;
 
+typedef struct BP_STRUCT {
+    int address;
+} BREAK_PNT;
+
 int execAddress;
 
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value

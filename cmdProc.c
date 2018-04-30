@@ -207,7 +207,7 @@ ERROR_CODE testValidInput(INPUT_CMD ipcmd, COMMAND format) {
                 break;
             case bp:
                 arg[0] = hexToDec(ipcmd.arg[0]);
-                if(!strcmp(ipcmd.arg[0], "clear"))
+                if(!strcmp(ipcmd.arg[0], "clear") || !ipcmd.argCnt)
                     break;
                 if(arg[0] == -1)
                     code = HEX;

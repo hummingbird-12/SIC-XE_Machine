@@ -78,6 +78,7 @@ void quitCMD() {
     objListFree();          // free object code list
     modListFree();          // free modification record list
     extSymTableFree();      // free ESTAB
+    freeList(&breakPntList);// free break point list
     exit(0);
 }
 

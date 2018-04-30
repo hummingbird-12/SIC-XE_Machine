@@ -21,6 +21,7 @@
 #include "hash.h"
 #include "assembler.h"
 #include "linkLoader.h"
+#include "execute.h"
 
 int main() {
     char inp[CMD_LEN];  // input string
@@ -103,7 +104,9 @@ int main() {
                     histAdd(inp);
                 break;
             case run:
+                break;
             case bp:
+                bpCMD(input);
                 break;
             case invFormat:
                 invFormatCMD();

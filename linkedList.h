@@ -1,6 +1,7 @@
 LIST histList;
 LIST opCodeTable[HASH_SIZE];
 LIST extSymTable;
+LIST breakPntList;
 
 void addToList(LIST*, void*);
 
@@ -13,3 +14,4 @@ void printHistory(void*);
 void printOpList(void*);
 void printCntSecTable(void*);
 void printExtSym(void*);
+void printBreakPntList(void*);
