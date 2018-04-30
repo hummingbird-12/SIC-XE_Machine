@@ -151,6 +151,7 @@ typedef struct MOD_STRUCT {
     struct MOD_STRUCT* next;
 } MOD_RECORD;
 
+// Control Section structure for ESTAB
 typedef struct CS_STRUCT {
     char csName[CS_LEN];
     int stAddress;
@@ -158,11 +159,13 @@ typedef struct CS_STRUCT {
     LIST extSym;
 } CNT_SEC;
 
+// External Symbol structure for ESTAB
 typedef struct ES_STRUCT {
     char symName[CS_LEN];
     int address;
 } EXT_SYMBOL;
 
+// Break Point list structure
 typedef struct BP_STRUCT {
     int address;
 } BREAK_PNT;
