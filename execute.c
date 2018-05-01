@@ -3,6 +3,11 @@
 #include "linkedList.h"
 #include "execute.h"
 
+char inputStream[12] = "    SIC/XE\0\0";
+char outputStream[13] = {'\0'};
+int inputIdx = 0;
+int outputIdx = 0;
+
 bool bpCMD(INPUT_CMD ipcmd) {
     BREAK_PNT* newBP;
 
@@ -42,8 +47,9 @@ void runCMD() {
     static int curAddress = -1;
     static int lastBP = -1;
     int i;
-    int targetVal;
+    int targetVal, targetAddress;
     OBJ curObj;
+
 
     CCstatus = 4;
     if(curAddress == -1)
@@ -125,7 +131,8 @@ void runCMD() {
                 break;
         }
 
-        targetVal = (curObj.addrMode == immediate ? curObj.operand.immediate : mem[curObj.operand.target]);
+        targetAddress = curObj.operand.target;
+        targetVal = (curObj.addrMode == immediate ? curObj.operand.immediate : getMem(curObj.operand.target, 6));
         // execute instruction
         switch(curObj.mnemonic) {
             case ADD:
@@ -185,23 +192,23 @@ void runCMD() {
             case HIO:
                 break;
             case J:
-                registers[PCreg] = targetVal;
+                registers[PCreg] = targetAddress;
                 break;
             case JEQ:
                 if(CCstatus == eq)
-                    registers[PCreg] = targetVal;
+                    registers[PCreg] = targetAddress;
                 break;
             case JGT:
                 if(CCstatus == gt)
-                    registers[PCreg] = targetVal;
+                    registers[PCreg] = targetAddress;
                 break;
             case JLT:
                 if(CCstatus == lt)
-                    registers[PCreg] = targetVal;
+                    registers[PCreg] = targetAddress;
                 break;
             case JSUB:
                 registers[Lreg] = registers[PCreg];
-                registers[PCreg] = targetVal;
+                registers[PCreg] = targetAddress;
                 break;
             case LDA:
                 registers[Areg] = targetVal;
@@ -210,7 +217,7 @@ void runCMD() {
                 registers[Breg] = targetVal;
                 break;
             case LDCH:
-                registers[Areg] = (registers[Areg] & 0xF0) + targetVal;
+                registers[Areg] = (registers[Areg] & 0xFFFFFF00) + (targetVal / 0x10000);
                 break;
             case LDF:
                 registers[Freg] = targetVal;
@@ -244,6 +251,7 @@ void runCMD() {
                 registers[Areg] |= targetVal;
                 break;
             case RD:
+                registers[Areg] = (registers[Areg] & 0xFFFFFF00) + inputStream[inputIdx++];
                 break;
             case RMO:
                 registers[curObj.operand.reg[1]] = registers[curObj.operand.reg[0]];
@@ -259,33 +267,33 @@ void runCMD() {
             case SSK:
                 break;
             case STA:
-                putMem(targetVal, 3, registers[Areg]);
+                putMem(targetAddress, 3, registers[Areg]);
                 break;
             case STB:
-                putMem(targetVal, 3, registers[Breg]);
+                putMem(targetAddress, 3, registers[Breg]);
                 break;
             case STCH:
-                mem[targetVal] = registers[Areg] & 0xF;
+                mem[targetAddress] = registers[Areg] & 0xFF;
                 break;
             case STF:
-                putMem(targetVal, 6, registers[Freg]);
+                putMem(targetAddress, 6, registers[Freg]);
                 break;
             case STI:
                 break;
             case STL:
-                putMem(targetVal, 3, registers[Lreg]);
+                putMem(targetAddress, 3, registers[Lreg]);
                 break;
             case STS:
-                putMem(targetVal, 3, registers[Sreg]);
+                putMem(targetAddress, 3, registers[Sreg]);
                 break;
             case STSW:
-                putMem(targetVal, 3, registers[SWreg]);
+                putMem(targetAddress, 3, registers[SWreg]);
                 break;
             case STT:
-                putMem(targetVal, 3, registers[Treg]);
+                putMem(targetAddress, 3, registers[Treg]);
                 break;
             case STX:
-                putMem(targetVal, 3, registers[Xreg]);
+                putMem(targetAddress, 3, registers[Xreg]);
                 break;
             case SUB:
                 registers[Areg] -= targetVal;
@@ -299,9 +307,10 @@ void runCMD() {
             case SVC:
                 break;
             case TD:
-                CCstatus = lt;
+                CCstatus = lt; // suppose it's always active
                 break;
             case TIO:
+                CCstatus = lt;
                 break;
             case TIX:
                 registers[Xreg]++;
@@ -316,12 +325,13 @@ void runCMD() {
                 registers[Xreg]++;
                 if(registers[Xreg] < registers[curObj.operand.reg[0]])
                     CCstatus = lt;
-                else if(registers[Xreg] == registers[curObj.operand.reg[1]])
+                else if(registers[Xreg] == registers[curObj.operand.reg[0]])
                     CCstatus = eq;
                 else
                     CCstatus = gt;
                 break;
             case WD:
+                outputStream[outputIdx++] = registers[Areg] & 0xFF;
                 break;
             default: // not an opcode
                 registers[PCreg] = registers[PCreg] - curObj.format + 1; // increase PC
@@ -329,6 +339,7 @@ void runCMD() {
                 continue;
                 break;
         }
+        printf("%04X\n", curAddress);
         curAddress = registers[PCreg]; // increase curAddress
     }
     // program ended, dump registers
@@ -337,6 +348,7 @@ void runCMD() {
     printf("\n\tEnd program.\n");
     curAddress = -1;
     lastBP = -1;
+    inputIdx = outputIdx = 0;
 }
 
 int getTargetAddress(int curAddress, FMT format) {

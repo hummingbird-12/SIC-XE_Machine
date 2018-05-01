@@ -14,6 +14,8 @@ bool loaderCMD(INPUT_CMD ipcmd) {
 
     objFptr[0] = objFptr[1] = objFptr[2] = NULL;
     extSymTableFree();
+    for(i = 0; i < REG_CNT; i++)
+        registers[i] = 0; // initialize registers
 
     for(i = 0; i < ipcmd.argCnt; i++) {
         if(strcmp(ipcmd.arg[i] + strlen(ipcmd.arg[i]) - 4, ".obj")) {
@@ -40,6 +42,7 @@ bool loaderCMD(INPUT_CMD ipcmd) {
     if(execAddress == -1)
         return false;
 
+    registers[Lreg] = progAddr + progLen;
     printList(extSymTable, printCntSecTable); // print load map
     printf("---------------------------------------------------------\n");
     printf("\t\t\t\tTotal length\t%04X\n", progLen);

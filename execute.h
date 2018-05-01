@@ -1,13 +1,3 @@
-#define Areg 0
-#define Xreg 1
-#define Lreg 2
-#define Breg 3
-#define Sreg 4
-#define Treg 5
-#define Freg 6
-#define PCreg 7
-#define SWreg 8
-
 typedef enum {
     ADD = 0x18,
     ADDF = 0x58,

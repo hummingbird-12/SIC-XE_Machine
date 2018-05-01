@@ -36,6 +36,15 @@
 #define MAX12DISP 4096      // highest number expressable with 12 bits
 #define MAX15ADDR 32768     // highest number expressable with 15 bits
 #define REG_CNT 9           // register count
+#define Areg 0              // A register number
+#define Xreg 1              // X register number
+#define Lreg 2              // L register number
+#define Breg 3              // B register number
+#define Sreg 4              // S register number
+#define Treg 5              // T register number
+#define Freg 6              // F register number
+#define PCreg 7             // PC register number
+#define SWreg 8             // SW register number
 
 typedef struct dirent ENTRY;        // for dir command
 typedef struct stat STBUF;          // for dir command

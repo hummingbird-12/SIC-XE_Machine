@@ -74,4 +74,6 @@ void resetCMD() {
     int i;
     for(i = 0; i < MEM_SIZE; i++)
         mem[i] = 0; // set memory to 0x00000
+    for(i = 0; i < REG_CNT; i++)
+        registers[i] = 0; // initialize registers
 }
