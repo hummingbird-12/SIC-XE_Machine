@@ -1,15 +1,16 @@
-< Project 2 - SIC/XE Assembler >
+< Project 3 - SIC/XE Linking Loader >
 
 0. How to execute program
 
 * After unzipping, there should be:
-- 6 *.h header files        (20161577.h, cmdProc.h, shell.h, memory.h, hash.h, assembler.h)
-- 6 *.c source code files   (20161577.c, cmdProc.c, shell.c, memory.c, hash.c, assembler.c)
+- 9 *.h header files
+- 9 *.c source code files
 - Makefile
 - Document.docx
 - README.txt
 - opcode.txt
-- 2_5.asm
+- proga.obj, progb.obj, progc.obj
+- copy.obj
 
 * Then, type the following to execute program:
 $ make
@@ -21,8 +22,8 @@ $ make clean
 
 1. Description
 
-This is the second project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
-The implementation of the SIC/XE Machine Assembler is added to the shell environment created in first project.
+This is the third project for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
+The implementation of the SIC/XE Machine Linking Loader is added to the previous project.
 
 
 2. Specification
@@ -45,14 +46,13 @@ The implementation of the SIC/XE Machine Assembler is added to the shell environ
 - assemble filename         : assemble .asm source file
 - type filename             : print content of specified file
 - symbol                    : show content of symbol table of the latest succesfully assembled source.
+- loader                    : linking load program
+- progaddr                  : designate starting address
+- run                       : run program
+- bp                        : create break point
 
 
-4. Other information
-
-This system will be further improved with more features such as loader and linker.
-
-
-5. About the Developer
+4. About the Developer
 
 Inho Kim, 20161577,
 Undergraduate student of Dept. of Computer Science and Engineering,
