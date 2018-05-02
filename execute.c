@@ -97,7 +97,7 @@ void runCMD() {
         if(!mem[curAddress])
             curObj.format = 1;
 
-        // check for debugging point
+        // check for breaK point
         for(i = curAddress; i < curAddress + curObj.format; i++)
             if(i > lastBP && searchBP(i)) {
                 lastBP = i;
@@ -137,7 +137,8 @@ void runCMD() {
         }
 
         targetAddress = curObj.operand.target;
-        targetVal = (curObj.addrMode == immediate ? curObj.operand.immediate : getMem(curObj.operand.target, 6));
+        if(curObj.operand.target < MEM_SIZE)
+            targetVal = (curObj.addrMode == immediate ? curObj.operand.immediate : getMem(curObj.operand.target, 6));
 
         // execute instruction
         switch(curObj.mnemonic) {
@@ -181,12 +182,27 @@ void runCMD() {
                     CCstatus = gt;
                 break;
             case DIV:
+                if(!targetVal) {
+                    puts("ERROR: division by 0. Program will end.");
+                    curAddress = endAddress;
+                    continue;
+                }
                 registers[Areg] /= targetVal;
                 break;
             case DIVF:
+                if(!targetVal) {
+                    puts("ERROR: division by 0. Program will end.");
+                    curAddress = endAddress;
+                    continue;
+                }
                 registers[Freg] /= targetVal;
                 break;
             case DIVR:
+                if(!registers[curObj.operand.reg[0]]) {
+                    puts("ERROR: division by 0. Program will end.");
+                    curAddress = endAddress;
+                    continue;
+                }
                 registers[curObj.operand.reg[1]] /= registers[curObj.operand.reg[0]];
                 break;
             case FIX:
@@ -345,16 +361,22 @@ void runCMD() {
                 continue;
                 break;
         }
-        // printf("%04X\n", curAddress); // debugging purposes
         curAddress = registers[PCreg]; // increase curAddress
     }
-    // program ended, dump registers and prepare for next run
+    // program ended, dump registers
     registers[PCreg] = endAddress;
     dumpReg(); 
     printf("\n\tEnd program.\n");
+
+    // prepare for next run
+    for(i = 0; i < REG_CNT; i++)
+        registers[i] = 0;
+    registers[Lreg] = endAddress;
     curAddress = -1;
     lastBP = -1;
+    CCstatus = 4;
     inputIdx = outputIdx = 0;
+    memset(outputStream, '\0', 13);
 }
 
 int getTargetAddress(int curAddress, FMT format) {
@@ -411,6 +433,8 @@ int simpleAddress(int curAddress, FMT format) {
 int getMem(int address, int hBytes) {
     int val = 0;
     int i;
+    if(address >= MEM_SIZE)
+        return 0;
     val = mem[address] % (hBytes % 2 ? 0x10 : 0x100); // get half or full byte
     for(i = 1; i <= (hBytes - 1) / 2; i++) {
         val *= 0x100; // increae byte
@@ -421,6 +445,8 @@ int getMem(int address, int hBytes) {
 
 void putMem(int address, int bytes, int value) {
     int i;
+    if(address >= MEM_SIZE)
+        return;
     for(i = address + bytes - 1; i >= address; i--) {
         mem[i] = value & 0xFF; // mask over lower byte
         value /= 0x100;

@@ -5,7 +5,7 @@
 
 // set program start address input by user
 void pAddrCMD(INPUT_CMD ipcmd) {
-    progAddr = strtol(ipcmd.arg[0], NULL, 16);
+    progAddr = execAddress = strtol(ipcmd.arg[0], NULL, 16);
 }
 
 // linking loader process
