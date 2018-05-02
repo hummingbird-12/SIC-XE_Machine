@@ -1,3 +1,19 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                               *
+ *                    Sogang University                          *
+ *         Department of Computer Science and Engineering        *
+ *                                                               *
+ * Subject name: System Programming                              *
+ * Project title: [3] SIC/XE Machine - Linking Loader            *
+ *                                                               *
+ * Author: Inho Kim                                              *
+ * Student ID: 20161577                                          *
+ *                                                               *
+ * File name: execute.h                                          *
+ * File description: Header file for execution related tasks.    *
+ *                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // add mnemonics as enum with corresponding opcode
 typedef enum {
     ADD = 0x18,

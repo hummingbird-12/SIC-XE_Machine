@@ -4,7 +4,7 @@
  *         Department of Computer Science and Engineering        *
  *                                                               *
  * Subject name: System Programming                              *
- * Project title: [1] SIC/XE Machine - The Assembler             *
+ * Project title: [3] SIC/XE Machine - Linking Loader            *
  *                                                               *
  * Author: Inho Kim                                              *
  * Student ID: 20161577                                          *
