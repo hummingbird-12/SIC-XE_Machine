@@ -3,29 +3,33 @@
 #include "linkedList.h"
 #include "execute.h"
 
-char inputStream[12] = "    SIC/XE\0\0";
-char outputStream[13] = {'\0'};
+char inputStream[12] = "    SIC/XE\0\0";    // virtual input device for testing copy.obj
+char outputStream[13] = {'\0'};             // virtual output device for testing copy.obj
 int inputIdx = 0;
 int outputIdx = 0;
 
 bool bpCMD(INPUT_CMD ipcmd) {
     BREAK_PNT* newBP;
 
+    // if no argument was in input
     if(!ipcmd.argCnt) {
         printf("\tbreakpoint\n");
         printf("\t----------\n");
         printList(breakPntList, printBreakPntList);
         return true;
     }
+    // if break clear was in input
     if(!strcmp(ipcmd.arg[0], "clear")) {
         printf("\t[ok] clear all breakpoints\n");
         freeList(&breakPntList);
         return true;
     }
+    // if break point was already present at same address
     if(searchBP(hexToDec(ipcmd.arg[0]))) {
         printf("\t[warning] breakpoint already at %04X\n", hexToDec(ipcmd.arg[0]));
         return false;
     }
+    // add new break point to linked list
     newBP = (BREAK_PNT*) malloc(sizeof(BREAK_PNT));
     newBP->address = hexToDec(ipcmd.arg[0]);
     addToList(&breakPntList, (void*) newBP);
@@ -37,7 +41,7 @@ bool searchBP(int address) {
     NODE* curBP = breakPntList;
     while(curBP) {
         if(((BREAK_PNT*)(curBP->data))->address == address)
-            return true;
+            return true; // break point was found
         curBP = curBP->next;
     }
     return false;
@@ -51,6 +55,7 @@ void runCMD() {
     OBJ curObj;
 
 
+    // initialization
     CCstatus = 4;
     if(curAddress == -1)
         curAddress = execAddress; // start from beginning
@@ -122,8 +127,8 @@ void runCMD() {
                     curObj.operand.immediate = curObj.operand.target;
                 break;
             case fmt2:
-                curObj.operand.reg[0] = mem[curAddress + 1] / 0x10;
-                curObj.operand.reg[1] = mem[curAddress + 1] % 0x10;
+                curObj.operand.reg[0] = mem[curAddress + 1] / 0x10; // decode register1
+                curObj.operand.reg[1] = mem[curAddress + 1] % 0x10; // decode register2
                 break;
             case fmt1:
                 break;
@@ -133,6 +138,7 @@ void runCMD() {
 
         targetAddress = curObj.operand.target;
         targetVal = (curObj.addrMode == immediate ? curObj.operand.immediate : getMem(curObj.operand.target, 6));
+
         // execute instruction
         switch(curObj.mnemonic) {
             case ADD:
@@ -216,7 +222,7 @@ void runCMD() {
             case LDB:
                 registers[Breg] = targetVal;
                 break;
-            case LDCH:
+            case LDCH: // load to lower byte
                 registers[Areg] = (registers[Areg] & 0xFFFFFF00) + (targetVal / 0x10000);
                 break;
             case LDF:
@@ -250,7 +256,7 @@ void runCMD() {
             case OR:
                 registers[Areg] |= targetVal;
                 break;
-            case RD:
+            case RD: // read to lower byte
                 registers[Areg] = (registers[Areg] & 0xFFFFFF00) + inputStream[inputIdx++];
                 break;
             case RMO:
@@ -272,7 +278,7 @@ void runCMD() {
             case STB:
                 putMem(targetAddress, 3, registers[Breg]);
                 break;
-            case STCH:
+            case STCH: // store lower byte
                 mem[targetAddress] = registers[Areg] & 0xFF;
                 break;
             case STF:
@@ -330,7 +336,7 @@ void runCMD() {
                 else
                     CCstatus = gt;
                 break;
-            case WD:
+            case WD: // store lower byte
                 outputStream[outputIdx++] = registers[Areg] & 0xFF;
                 break;
             default: // not an opcode
@@ -339,10 +345,10 @@ void runCMD() {
                 continue;
                 break;
         }
-        printf("%04X\n", curAddress);
+        // printf("%04X\n", curAddress); // debugging purposes
         curAddress = registers[PCreg]; // increase curAddress
     }
-    // program ended, dump registers
+    // program ended, dump registers and prepare for next run
     registers[PCreg] = endAddress;
     dumpReg(); 
     printf("\n\tEnd program.\n");
@@ -352,19 +358,19 @@ void runCMD() {
 }
 
 int getTargetAddress(int curAddress, FMT format) {
-    ADR_MODE addrMode = mem[curAddress] & 3;
+    ADR_MODE addrMode = mem[curAddress] & 3; // mask on n and i bits
     int target;
     switch(addrMode) {
-        case SIC:
+        case SIC: // n = 0, i = 0
             target = SICAddress(curAddress);
             break;
-        case immediate:
+        case immediate: // n = 0, i = 0
             target = immediateAddress(curAddress, format);
             break;
-        case indirect:
+        case indirect: // n = 1, i = 0
             target = indirectAddress(curAddress, format);
             break;
-        case simple:
+        case simple: // n = 1, i = 1
             target = simpleAddress(curAddress, format);
             break;
         default:
@@ -376,7 +382,7 @@ int getTargetAddress(int curAddress, FMT format) {
 }
 
 int SICAddress(int curAddress) {
-    return getMem(curAddress, 5) & 0x7FFF;
+    return getMem(curAddress, 5) & 0x7FFF; // lower 15 bits is target
 }
 
 int immediateAddress(int curAddress, FMT format) {
@@ -393,7 +399,7 @@ int simpleAddress(int curAddress, FMT format) {
     int target = getMem(curAddress + 1, format == fmt3 ? 3 : 5);  
 
     if(setBit == 2) { // PC relative
-        if(target & (format == fmt3 ? 0x800 : 0x80000))
+        if(target & (format == fmt3 ? 0x800 : 0x80000)) // mask over displacement field
             target = target | (format == fmt3 ? 0xFFFFF000 : 0xFFF00000);
         target += registers[PCreg];
     }
@@ -405,9 +411,9 @@ int simpleAddress(int curAddress, FMT format) {
 int getMem(int address, int hBytes) {
     int val = 0;
     int i;
-    val = mem[address] % (hBytes % 2 ? 0x10 : 0x100);
+    val = mem[address] % (hBytes % 2 ? 0x10 : 0x100); // get half or full byte
     for(i = 1; i <= (hBytes - 1) / 2; i++) {
-        val *= 0x100;
+        val *= 0x100; // increae byte
         val += mem[address + i];
     }
     return val;
@@ -416,11 +422,12 @@ int getMem(int address, int hBytes) {
 void putMem(int address, int bytes, int value) {
     int i;
     for(i = address + bytes - 1; i >= address; i--) {
-        mem[i] = value & 0xFF;
+        mem[i] = value & 0xFF; // mask over lower byte
         value /= 0x100;
     }
 }
 
+// output registers
 void dumpReg() {
     printf("\t    A : %012X X : %08X\n", registers[Areg], registers[Xreg]);
     printf("\t    L : %012X PC: %012X\n", registers[Lreg], registers[PCreg]);

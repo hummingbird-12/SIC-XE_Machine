@@ -1,3 +1,4 @@
+// add mnemonics as enum with corresponding opcode
 typedef enum {
     ADD = 0x18,
     ADDF = 0x58,
@@ -59,18 +60,22 @@ typedef enum {
     WD = 0xDC
 } OPmnemonic;
 
+// instruction format
 typedef enum {
     constant, fmt1, fmt2, fmt3, fmt4
 } FMT;
 
+// addressing mode
 typedef enum {
     SIC, immediate, indirect, simple
 } ADR_MODE;
 
+// CC status ( <=, ==, >= )
 enum {
     lt, eq, gt
 } CCstatus;
 
+// struct to store parsed obj code
 typedef struct {
     OPmnemonic mnemonic;
     FMT format;
@@ -83,16 +88,16 @@ typedef struct {
     bool indexing;
 } OBJ;
 
-bool bpCMD(INPUT_CMD);
-bool searchBP(int);
+bool bpCMD(INPUT_CMD);          // search for break point
+bool searchBP(int);             // search for break point
 
-void runCMD();
-void dumpReg();
-int getTargetAddress(int, FMT);
-int SICAddress(int);
-int immediateAddress(int, FMT);
-int indirectAddress(int, FMT);
-int simpleAddress(int, FMT);
+void runCMD();                  // run command
+void dumpReg();                 // dump registers
+int getTargetAddress(int, FMT); // return target address
+int SICAddress(int);            // SIC instruction
+int immediateAddress(int, FMT); // immediate address
+int indirectAddress(int, FMT);  // indirect address
+int simpleAddress(int, FMT);    // simple address
 
-int getMem(int, int);
-void putMem(int, int, int);
+int getMem(int, int);           // get value from memory
+void putMem(int, int, int);     // store value in memory

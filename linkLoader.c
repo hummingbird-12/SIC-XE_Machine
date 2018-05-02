@@ -3,20 +3,24 @@
 #include "memory.h"
 #include "linkLoader.h"
 
+// set program start address input by user
 void pAddrCMD(INPUT_CMD ipcmd) {
     progAddr = strtol(ipcmd.arg[0], NULL, 16);
 }
 
+// linking loader process
 bool loaderCMD(INPUT_CMD ipcmd) {
     FILE* objFptr[3];
     int progLen;
     int i;
 
     objFptr[0] = objFptr[1] = objFptr[2] = NULL;
-    extSymTableFree();
+    extSymTableFree(); // initialize ESTAB
+
     for(i = 0; i < REG_CNT; i++)
         registers[i] = 0; // initialize registers
 
+    // check for file error
     for(i = 0; i < ipcmd.argCnt; i++) {
         if(strcmp(ipcmd.arg[i] + strlen(ipcmd.arg[i]) - 4, ".obj")) {
             puts("ERROR: Non-object file selected.");
@@ -42,7 +46,7 @@ bool loaderCMD(INPUT_CMD ipcmd) {
     if(execAddress == -1)
         return false;
 
-    registers[Lreg] = progAddr + progLen;
+    registers[Lreg] = progAddr + progLen; // set L register to program's end address
     printList(extSymTable, printCntSecTable); // print load map
     printf("---------------------------------------------------------\n");
     printf("\t\t\t\tTotal length\t%04X\n", progLen);
@@ -67,9 +71,11 @@ int linkLoaderPass1(FILE** objFptr) {
         fgets(record, 101, objFptr[i]); // header record
         if(record[strlen(record) - 1] == '\n')
             record[strlen(record) - 1] = '\0';
+
         newCntSec->length = hexToDec(record + strlen(record) - 6); // control section length
         strncpy(csName, record + 1, CS_LEN - 1); // get control section name
-        if(record[0] != 'H') {
+
+        if(record[0] != 'H') { // obj file is missing header record
             printf("ERROR: missing header record in .obj file number %d.\n", i + 1);
             extSymTableFree();
             free(newCntSec);
@@ -89,6 +95,7 @@ int linkLoaderPass1(FILE** objFptr) {
         fgets(record, 101, objFptr[i]); // read next record
         if(record[strlen(record) - 1] == '\n')
             record[strlen(record) - 1] = '\0';
+
         while(record[0] != 'E') {
             if(record[0] == 'D') { // if a D record is found
                 for(j = 1; record[j]; j += 12) {
@@ -102,7 +109,7 @@ int linkLoaderPass1(FILE** objFptr) {
                     newExtSym = (EXT_SYMBOL*) malloc(sizeof(EXT_SYMBOL));
                     strncpy(newExtSym->symName, esName, CS_LEN - 1);
                     newExtSym->address = hexToDec(addr) + CSADDR;
-                    addToList(&(newCntSec->extSym), (void*) newExtSym);
+                    addToList(&(newCntSec->extSym), (void*) newExtSym); // add new external symbol to ESTAB
                 }
             }
             fgets(record, 101, objFptr[i]); // read next record
@@ -110,9 +117,9 @@ int linkLoaderPass1(FILE** objFptr) {
                 record[strlen(record) - 1] = '\0';
         }
 
-        CSADDR += newCntSec->length;
+        CSADDR += newCntSec->length; // increment CSADDR
         i++;
-        if(i == CS_MAX)
+        if(i == CS_MAX) // maximum of 3 control sections
             break;
         if(objFptr[i]) { // next control section exists
             newCntSec = (CNT_SEC*) malloc(sizeof(CNT_SEC));
@@ -120,7 +127,7 @@ int linkLoaderPass1(FILE** objFptr) {
             newCntSec->extSym = NULL;
         }
     }
-    endAddress = CSADDR;
+    endAddress = CSADDR; // set program's end address
     return CSADDR - progAddr;
 }
 
@@ -171,7 +178,7 @@ int linkLoaderPass2(FILE** objFptr) {
                 hByteCnt = hexToDec(temp); // half byte count to modify
 
                 memset(temp, '\0', CS_LEN);
-                strcpy(temp, record + 10);
+                strcpy(temp, record + 10); // reference number
                 if(hexToDec(temp) > maxExSymIndex) {
                     puts("ERROR: out-of-bound reference number in modification record.");
                     return -1;
@@ -208,12 +215,12 @@ int linkLoaderPass2(FILE** objFptr) {
             if(record[strlen(record) - 1] == '\n')
                 record[strlen(record) - 1] = '\0';
         }
-        CSADDR += CSLTH;
+        CSADDR += CSLTH; // increment CSADDR
 
         i++;
-        if(i == CS_MAX)
+        if(i == CS_MAX) // maximum of 3 control sections
             break;
-        curCntSec = curCntSec->next;
+        curCntSec = curCntSec->next; // next control section
     }
     if(refNum)
         free(refNum);
@@ -224,7 +231,7 @@ void fcloseObj(FILE** objFptr) {
     int i;
     for(i = 0; i < 3; i++) {
         if(objFptr[i])
-            fclose(objFptr[i]);
+            fclose(objFptr[i]); // close each obj file
         objFptr[i] = NULL;
     }
 }
@@ -234,7 +241,7 @@ bool searchCS(char* csName) {
     CNT_SEC* data;
     while(cur) {
         data = (CNT_SEC*) cur->data;
-        if(!strcmp(data->csName, csName))
+        if(!strcmp(data->csName, csName)) // found overlapping control section name
             return true;
         cur = cur->next;
     }
@@ -248,7 +255,7 @@ int searchES(char* symName) {
         curES = ((CNT_SEC*)(curCS->data))->extSym;
         while(curES) {
             if(!strcmp(symName, ((EXT_SYMBOL*)(curES->data))->symName))
-                return ((EXT_SYMBOL*)(curES->data))->address;
+                return ((EXT_SYMBOL*)(curES->data))->address; // found external symbol
             curES = curES->next;
         }
         curCS = curCS->next;
