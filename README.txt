@@ -46,8 +46,8 @@ The implementation of the SIC/XE Machine Linking Loader is added to the previous
 - assemble filename         : assemble .asm source file
 - type filename             : print content of specified file
 - symbol                    : show content of symbol table of the latest succesfully assembled source.
-- loader                    : linking load program
 - progaddr                  : designate starting address
+- loader                    : linking load program
 - run                       : run program
 - bp                        : create break point
 
