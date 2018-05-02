@@ -180,7 +180,8 @@ typedef struct BP_STRUCT {
     int address;
 } BREAK_PNT;
 
-int execAddress, endAddress;
+int progAddr;                   // program start address set by progaddr command
+int execAddress, endAddress;    // execution and end address
 int registers[REG_CNT]; // A, X, L, B, S, T, F, PC, SW
 
 int hexToDec(char*);    // function to check for vaild hex value and return converted decimal value

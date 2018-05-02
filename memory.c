@@ -76,5 +76,5 @@ void resetCMD() {
         mem[i] = 0; // set memory to 0x00000
     for(i = 0; i < REG_CNT; i++)
         registers[i] = 0; // initialize registers
-    execAddress = endAddress = 0;
+    progAddr = execAddress = endAddress = 0;
 }

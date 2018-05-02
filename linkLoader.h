@@ -14,8 +14,6 @@
  *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int progAddr;                   // program start address set by progaddr command
-
 void pAddrCMD(INPUT_CMD);       // progaddr COMMAND
 bool loaderCMD(INPUT_CMD);      // loader COMMAND
 
