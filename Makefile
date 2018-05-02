@@ -31,5 +31,4 @@ execute.o: 20161577.h linkedList.h execute.h
 
 clean:
 	-rm *.o
-	-rm *.lst
 	-rm 20161577.out
