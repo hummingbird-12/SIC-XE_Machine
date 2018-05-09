@@ -9,7 +9,7 @@
  * Author: Inho Kim                                              *
  * Student ID: 20161577                                          *
  *                                                               *
- * File name: hash.h                                             *
+ * File name: execute.c                                          *
  * File description: Performs the execution of programs.         *
  *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

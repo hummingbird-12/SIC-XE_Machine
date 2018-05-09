@@ -9,7 +9,7 @@
  * Author: Inho Kim                                              *
  * Student ID: 20161577                                          *
  *                                                               *
- * File name: hash.h                                             *
+ * File name: linkLoader.c                                       *
  * File description: Performs the linking loader task.           *
  *                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
