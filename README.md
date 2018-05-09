@@ -4,7 +4,7 @@
 
 This is a series of projects for the System Programmig course in the Department of Computer Science and Engineering at Sogang University, Seoul, South Korea.
 
-The result is a implementation of SIC/XE Machine with features such as shell environment, assembler and linking loader.
+The result is an implementation of SIC/XE Machine with features such as shell environment, assembler and linking loader.
 
 
 ## Specification
@@ -15,9 +15,9 @@ The result is a implementation of SIC/XE Machine with features such as shell env
 ## Features
 
 - [ OK ] Shell environment
-- [ OK ] Assembler
+- [ OK ] Assembler (pass1, pass2)
 - [ OK ] Modification record (Relocation)
-- [ OK ] Linking loader
+- [ OK ] Linking loader (pass1, pass2)
 - [ OK ] Basic execution
 
 
